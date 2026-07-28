@@ -9,24 +9,19 @@ struct MicPauseApp: App {
         MenuBarExtra {
             MenuBarView(model: appDelegate.model)
         } label: {
-            Image(systemName: statusSymbolName)
-            .accessibilityLabel("Mic Pause")
+            Image("MenuBarIconTemplate")
+                .resizable()
+                .renderingMode(.template)
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .accessibilityLabel(
+                    "Mic Pause: \(appDelegate.model.playbackCoordinator.state.label)"
+                )
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
             SettingsView(model: appDelegate.model)
-        }
-    }
-
-    private var statusSymbolName: String {
-        switch appDelegate.model.playbackCoordinator.state {
-        case .pausedByUtility:
-            "pause.circle.fill"
-        case .unavailable:
-            "mic.slash"
-        default:
-            "mic"
         }
     }
 }
