@@ -9,7 +9,7 @@ struct MicPauseApp: App {
         MenuBarExtra {
             MenuBarView(model: appDelegate.model)
         } label: {
-            Image("MenuBarIconTemplate")
+            Image("MenuBarIcon")
                 .resizable()
                 .renderingMode(.template)
                 .scaledToFit()
