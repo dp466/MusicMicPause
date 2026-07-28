@@ -18,7 +18,7 @@ struct MicPauseApp: App {
                     "Mic Pause: \(appDelegate.model.playbackCoordinator.state.label)"
                 )
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView(model: appDelegate.model)
