@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mic Pause Support</title>
+  <style>
+    body { color: #17151d; font: 17px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 760px; padding: 48px 24px; }
+    h1, h2 { line-height: 1.2; } h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Mic Pause Support</h1>
+  <h2>Apple Music is not pausing</h2>
+  <p>Open Mic Pause Settings and confirm that monitoring is enabled and Apple
+  Music Automation says Allowed. If it is denied, enable Mic Pause under System
+  Settings → Privacy &amp; Security → Automation.</p>
+  <h2>The microphone always appears active</h2>
+  <p>Mic Pause reports the device-level Core Audio running state. Some audio
+  drivers keep the input device running even when an app is not recording.
+  Quitting the app that owns the input or selecting another default input device
+  may resolve this.</p>
+  <h2>Music should not resume</h2>
+  <p>Turn off Resume Apple Music automatically in Mic Pause Settings. Mic Pause
+  resumes only pauses that it initiated.</p>
+  <h2>Contact</h2>
+  <p>Add your public support email or issue-tracker link here before hosting this
+  page and submitting the app.</p>
+</body>
+</html>
