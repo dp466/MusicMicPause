@@ -22,6 +22,7 @@
 		7A00F113D764420F5CCDCD31 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD351B23E464CA887466233A /* SettingsView.swift */; };
 		8A84EA8B2AD9230EDC2454BF /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */; };
 		8D378C319821C933EBC6E5CD /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 649E0491D4DDBD8FE32B52C6 /* AppSettingsTests.swift */; };
+		9808B9F1E1E136693C4D26B2 /* MicPauseTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B34134B9B71C722087382D8D /* MicPauseTheme.swift */; };
 		9BF880F8ABCE72B9810D2B95 /* PlaybackCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E17F698F170A851CF9E148 /* PlaybackCoordinatorTests.swift */; };
 		A56A3DE4455F67303BEDCFD4 /* MusicPlayerControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C4D5D3C1A9B938D36685F2A /* MusicPlayerControlling.swift */; };
 		AADEEFEFCBDF4B9089A4F86E /* PlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ABE040574D5913CF7C40388 /* PlaybackCoordinator.swift */; };
@@ -57,6 +58,7 @@
 		695FAFF576F31E540979823C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		75953599B52AE33C3A46EAD6 /* ResumeDelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDelay.swift; sourceTree = "<group>"; };
 		997C55018E519FC6646C5C68 /* MicrophoneMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneMonitor.swift; sourceTree = "<group>"; };
+		B34134B9B71C722087382D8D /* MicPauseTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicPauseTheme.swift; sourceTree = "<group>"; };
 		B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C2D9BEFAB983C6ADE19F0796 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		CD351B23E464CA887466233A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */,
+				B34134B9B71C722087382D8D /* MicPauseTheme.swift */,
 				C2D9BEFAB983C6ADE19F0796 /* PrivacyPolicyView.swift */,
 				CD351B23E464CA887466233A /* SettingsView.swift */,
 			);
@@ -290,6 +293,7 @@
 				5D9369C7195AFEF3B4BF3289 /* LoginItemManager.swift in Sources */,
 				8A84EA8B2AD9230EDC2454BF /* MenuBarView.swift in Sources */,
 				C6DF8D40EEFA6D40CE2B660A /* MicPauseApp.swift in Sources */,
+				9808B9F1E1E136693C4D26B2 /* MicPauseTheme.swift in Sources */,
 				16970AF1AD61A2F68986DC0F /* MicrophoneMonitor.swift in Sources */,
 				1D3C71C4A64F7A3BFD793481 /* MonitoringState.swift in Sources */,
 				A56A3DE4455F67303BEDCFD4 /* MusicPlayerControlling.swift in Sources */,

@@ -8,7 +8,11 @@ struct MenuBarView: View {
 
     var body: some View {
         ZStack {
-            ambientBackdrop
+            MicPauseAmbientBackdrop(tint: presentation.tint)
+                .animation(
+                    reduceMotion ? nil : .easeInOut(duration: 0.45),
+                    value: presentation.tint
+                )
 
             ScrollView {
                 VStack(spacing: 16) {
@@ -279,26 +283,6 @@ struct MenuBarView: View {
         .padding(.top, 1)
     }
 
-    private var ambientBackdrop: some View {
-        ZStack {
-            Color(nsColor: .windowBackgroundColor)
-
-            Circle()
-                .fill(presentation.tint.opacity(0.18))
-                .frame(width: 260, height: 260)
-                .blur(radius: 80)
-                .offset(x: 150, y: -210)
-
-            Circle()
-                .fill(Color.blue.opacity(0.09))
-                .frame(width: 220, height: 220)
-                .blur(radius: 85)
-                .offset(x: -170, y: 240)
-        }
-        .ignoresSafeArea()
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: presentation.tint)
-    }
-
     private var presentation: StatusPresentation {
         guard model.settings.monitoringEnabled else {
             return StatusPresentation(
@@ -389,27 +373,6 @@ private extension ResumeDelay {
             "2 sec"
         case .fiveSeconds:
             "5 sec"
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func micPauseGlass(tint: Color? = nil) -> some View {
-        if #available(macOS 26.0, *) {
-            glassEffect(
-                .regular.tint(tint?.opacity(0.08)),
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-            )
-        } else {
-            background(
-                .regularMaterial,
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(.white.opacity(0.12), lineWidth: 0.5)
-            }
         }
     }
 }
