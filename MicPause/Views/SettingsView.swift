@@ -56,12 +56,8 @@ struct SettingsView: View {
                 Circle()
                     .fill(settingsTint.opacity(0.14))
 
-                Image("MenuBarIcon")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .foregroundStyle(settingsTint)
-                    .padding(12)
+                MicPauseBrandMark(tint: settingsTint)
+                    .padding(9)
             }
             .frame(width: 52, height: 52)
             .accessibilityHidden(true)

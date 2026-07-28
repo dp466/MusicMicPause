@@ -1,6 +1,32 @@
 import AppKit
 import SwiftUI
 
+struct MicPauseBrandMark: View {
+    let tint: Color
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = min(proxy.size.width, proxy.size.height)
+
+            ZStack {
+                Image(systemName: "music.note")
+                    .font(.system(size: size * 0.42, weight: .bold))
+                    .offset(x: size * 0.18, y: -size * 0.16)
+                    .opacity(0.62)
+
+                Image(systemName: "mic.fill")
+                    .font(.system(size: size * 0.56, weight: .semibold))
+                    .offset(x: -size * 0.08, y: size * 0.06)
+            }
+            .symbolRenderingMode(.monochrome)
+            .foregroundStyle(tint)
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .accessibilityHidden(true)
+    }
+}
+
 struct MicPauseAmbientBackdrop: View {
     let tint: Color
 

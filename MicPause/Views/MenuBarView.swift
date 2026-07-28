@@ -46,12 +46,8 @@ struct MenuBarView: View {
                 Circle()
                     .fill(presentation.tint.opacity(0.14))
 
-                Image("MenuBarIcon")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .foregroundStyle(presentation.tint)
-                    .padding(10)
+                MicPauseBrandMark(tint: presentation.tint)
+                    .padding(8)
             }
             .frame(width: 44, height: 44)
             .accessibilityHidden(true)
