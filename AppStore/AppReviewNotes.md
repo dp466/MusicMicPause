@@ -3,6 +3,8 @@
 Mic Pause is a menu-bar utility. It has no Dock icon and opens from the
 microphone icon in the macOS menu bar.
 
+No account or demo credentials are required.
+
 ## Core behavior
 
 1. Launch Apple Music and begin playing a song.
@@ -21,3 +23,13 @@ the `com.apple.Music.playback` scripting access group.
 
 The app has no accounts, purchases, analytics, advertising, or network
 functionality.
+
+## Permissions
+
+Mic Pause does not request macOS microphone-recording permission because it
+does not capture microphone audio. The only permission prompt expected during
+review is Automation access to control Music.
+
+If the Automation prompt was previously denied, open System Settings → Privacy
+& Security → Automation and enable Music under Mic Pause, then return to Mic
+Pause Settings and choose Check Permission.

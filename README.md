@@ -57,10 +57,23 @@ may vary.
 
 The project includes an App Sandbox entitlement, Hardened Runtime, a privacy
 manifest, a complete macOS app-icon set, a utility category, an encryption-use
-declaration, an in-app privacy policy, App Review notes, and a submission
-checklist. See [`AppStore/SubmissionChecklist.md`](AppStore/SubmissionChecklist.md)
-for the developer-account and App Store Connect work that cannot be completed
-from source alone.
+declaration, an in-app privacy policy, App Review notes, upload-ready screenshots,
+complete App Store copy, and a release website. Start with
+[`AppStore/ReleaseReadiness.md`](AppStore/ReleaseReadiness.md), then follow
+[`AppStore/SubmissionChecklist.md`](AppStore/SubmissionChecklist.md).
+
+Run the full local release preflight with:
+
+```sh
+./script/validate_release.sh
+```
+
+After configuring the Apple Developer team and installing a supported release
+Xcode, create the signed archive with:
+
+```sh
+DEVELOPMENT_TEAM=YOUR_TEAM_ID ./script/archive_app_store.sh
+```
 
 Development and automated verification use Xcode 27 beta as requested. Create
 the final distribution archive with a currently App Store-supported stable Xcode

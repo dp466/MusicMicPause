@@ -2,7 +2,10 @@
 .build/
 DerivedData/
 build/
+!website/build/
+!website/build/sites-vite-plugin.ts
 *.xcresult
 *.xcarchive
+dist/
 MicPause.xcodeproj/project.xcworkspace/xcuserdata/
 MicPause.xcodeproj/xcuserdata/
