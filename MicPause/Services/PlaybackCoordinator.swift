@@ -5,15 +5,6 @@ import Foundation
 final class PlaybackCoordinator: ObservableObject {
     typealias ResumePolicy = @MainActor () -> (automatically: Bool, delay: Duration)
 
-    /// Prevents an audio client from forming a feedback loop with Music.
-    ///
-    /// Some clients stop their input stream when Music pauses, then reopen it
-    /// after Music resumes. A normal short resume delay lets that cycle repeat
-    /// forever. Once capture reappears shortly after an automatic resume, wait
-    /// for one continuous quiet period before trying playback again.
-    static let rapidReactivationWindow = Duration.seconds(45)
-    static let rapidReactivationQuietPeriod = Duration.seconds(45)
-
     @Published private(set) var state: MonitoringState = .disabled
     private(set) var pausedByUs = false
 
@@ -26,8 +17,6 @@ final class PlaybackCoordinator: ObservableObject {
     private var transitionGeneration = 0
     private var playerObservationTask: Task<Void, Never>?
     private var cleanupTask: Task<Void, Never>?
-    private var lastAutomaticResumeAt: ContinuousClock.Instant?
-    private var rapidReactivationDetected = false
 
     init(
         player: any MusicPlayerControlling,
@@ -87,20 +76,6 @@ final class PlaybackCoordinator: ObservableObject {
 
         case .active:
             guard !microphoneIsActive || state.isUnavailable else { return }
-
-            if let lastAutomaticResumeAt,
-               lastAutomaticResumeAt.duration(to: .now) <= Self.rapidReactivationWindow {
-                if !rapidReactivationDetected {
-                    Log.playback.notice(
-                        "Microphone reactivated soon after playback resumed; waiting for a stable quiet period"
-                    )
-                }
-                rapidReactivationDetected = true
-            } else if !pausedByUs {
-                // A later, unrelated activation starts a fresh cycle.
-                rapidReactivationDetected = false
-            }
-
             microphoneIsActive = true
             transitionGeneration += 1
             cleanupTask?.cancel()
@@ -153,12 +128,8 @@ final class PlaybackCoordinator: ObservableObject {
                 return
             }
 
-            let resumeDelay = rapidReactivationDetected
-                ? max(policy.delay, Self.rapidReactivationQuietPeriod)
-                : policy.delay
-
             do {
-                try await sleep(resumeDelay)
+                try await sleep(policy.delay)
                 guard isCurrentInactiveTransition(generation) else { return }
                 guard resumePolicy().automatically else {
                     pausedByUs = false
@@ -179,7 +150,6 @@ final class PlaybackCoordinator: ObservableObject {
                 }
 
                 pausedByUs = false
-                lastAutomaticResumeAt = .now
                 Log.playback.info("Resumed Apple Music after microphone became inactive")
             } catch is CancellationError {
                 return
