@@ -273,6 +273,37 @@ final class PlaybackCoordinatorTests: XCTestCase {
         XCTAssertTrue(coordinator.pausedByUs)
     }
 
+    func testRapidReactivationWaitsForAStableQuietPeriod() async {
+        let player = MockMusicPlayer(state: .playing)
+        let sleeps = DurationRecorder()
+        let coordinator = PlaybackCoordinator(
+            player: player,
+            resumePolicy: { (true, .seconds(2)) },
+            sleep: { duration in await sleeps.record(duration) }
+        )
+
+        coordinator.setMonitoringEnabled(true)
+
+        // A normal first capture uses the configured resume delay.
+        await coordinator.handleMicrophoneStatus(.active)
+        await coordinator.handleMicrophoneStatus(.inactive)
+
+        // If capture immediately returns after the automatic resume, do not
+        // keep toggling Music on every short inactive gap.
+        await coordinator.handleMicrophoneStatus(.active)
+        await coordinator.handleMicrophoneStatus(.inactive)
+
+        let recorded = await sleeps.snapshot()
+        XCTAssertEqual(recorded, [
+            .seconds(2),
+            PlaybackCoordinator.rapidReactivationQuietPeriod,
+        ])
+
+        let snapshot = await player.snapshot()
+        XCTAssertEqual(snapshot.pauseCount, 2)
+        XCTAssertEqual(snapshot.playCount, 2)
+    }
+
     private func makeCoordinator(player: MockMusicPlayer) -> PlaybackCoordinator {
         PlaybackCoordinator(
             player: player,
@@ -290,6 +321,18 @@ final class PlaybackCoordinatorTests: XCTestCase {
             await Task.yield()
         }
         XCTFail("Condition was not satisfied")
+    }
+}
+
+private actor DurationRecorder {
+    private var durations: [Duration] = []
+
+    func record(_ duration: Duration) {
+        durations.append(duration)
+    }
+
+    func snapshot() -> [Duration] {
+        durations
     }
 }
 
