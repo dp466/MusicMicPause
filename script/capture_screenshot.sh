@@ -48,9 +48,11 @@ fi
 
 SURFACE="${1:-dashboard}"
 if [[ "$SURFACE" != "dashboard" && "$SURFACE" != "settings" ]]; then
-  echo "usage: $0 [dashboard|settings]" >&2
+  echo "usage: $0 [dashboard|settings] [--readme]" >&2
   exit 2
 fi
 
-/usr/bin/open -n "$APP_BUNDLE" --args --surface "$SURFACE"
+EXTRA_ARGS=(--surface "$SURFACE")
+if [[ "${2:-}" == "--readme" ]]; then EXTRA_ARGS+=(--readme); fi
+/usr/bin/open -n "$APP_BUNDLE" --args "${EXTRA_ARGS[@]}"
 echo "The $SURFACE screenshot window is open. Capture the window without personal information or notifications."

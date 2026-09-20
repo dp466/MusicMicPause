@@ -35,9 +35,13 @@ The app icon, menu-bar templates, and in-app brand mark share geometry in `MicPa
 ```sh
 ./script/capture_screenshot.sh dashboard
 ./script/capture_screenshot.sh settings
+
+# Enlarged, borderless views focused on the primary README controls
+./script/capture_screenshot.sh dashboard --readme
+./script/capture_screenshot.sh settings --readme
 ```
 
-The harness hosts the app’s real SwiftUI views under a separate bundle identifier. It does not opt into Launch at Login. Capture only its window; keep personal information and unrelated windows out of repository images. README screenshots are stored in `docs/images/`.
+The harness hosts the app’s real SwiftUI views under a separate bundle identifier. It does not opt into Launch at Login. Capture only its window; keep personal information and unrelated windows out of repository images. README screenshots are stored in `docs/images/`. In `--readme` mode, activate the window before capture so controls use their active appearance. The view is enlarged 1.5× and cropped to its primary controls to fit a laptop display; this does not change the production app. Display the resulting captures below their pixel width in the README for sharper text. The editable SVG banner uses the app’s existing mark geometry.
 
 Historical App Store compositions are in `AppStore/Screenshots/`; recapture and review them before a Store submission.
 
