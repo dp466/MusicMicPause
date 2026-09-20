@@ -1,20 +1,20 @@
-import Combine
 import Foundation
+import Observation
 
 @MainActor
-final class AppModel: ObservableObject {
-    let settings: AppSettings
-    let microphoneMonitor: MicrophoneMonitor
-    let playbackCoordinator: PlaybackCoordinator
-    let musicController: AppleMusicController
-    let loginItemManager: LoginItemManager
+@Observable
+final class AppModel {
+    @ObservationIgnored let settings: AppSettings
+    @ObservationIgnored let microphoneMonitor: MicrophoneMonitor
+    @ObservationIgnored let playbackCoordinator: PlaybackCoordinator
+    @ObservationIgnored let musicController: AppleMusicController
+    @ObservationIgnored let loginItemManager: LoginItemManager
 
-    @Published private(set) var automationPermission: AutomationPermissionStatus = .notDetermined
-    @Published private(set) var isRequestingAutomationPermission = false
-    @Published private(set) var automationPermissionMessage: String?
+    private(set) var automationPermission: AutomationPermissionStatus = .notDetermined
+    private(set) var isRequestingAutomationPermission = false
+    private(set) var automationPermissionMessage: String?
 
-    private var cancellables = Set<AnyCancellable>()
-    private var isTerminating = false
+    @ObservationIgnored private var isTerminating = false
 
     init(
         settings: AppSettings = AppSettings(),
@@ -39,27 +39,40 @@ final class AppModel: ObservableObject {
             }
         }
 
-        settings.$monitoringEnabled
-            .removeDuplicates()
-            .sink { [weak self] enabled in
-                guard let self else { return }
-                playbackCoordinator.setMonitoringEnabled(enabled)
-                if enabled {
-                    microphoneMonitor.start()
-                } else {
-                    microphoneMonitor.stop()
-                }
-            }
-            .store(in: &cancellables)
+        microphoneMonitor.shouldIgnoreSource = { [weak self] source in
+            self?.settings.ignores(source) ?? false
+        }
 
-        forwardChanges(from: settings)
-        forwardChanges(from: microphoneMonitor)
-        forwardChanges(from: playbackCoordinator)
-        forwardChanges(from: loginItemManager)
+        settings.onMonitoringEnabledChange = { [weak self] enabled in
+            self?.applyMonitoringPreference(enabled)
+        }
+
+        applyMonitoringPreference(settings.monitoringEnabled)
 
         Task { [weak self] in
             await self?.refreshAutomationPermission()
         }
+    }
+
+    var monitoringEnabled: Bool { settings.monitoringEnabled }
+
+    func ignoreCaptureSource(_ source: CaptureSource) {
+        settings.ignore(source)
+        microphoneMonitor.reevaluate()
+    }
+
+    func stopIgnoringCaptureSource(_ identifier: String) {
+        settings.stopIgnoring(identifier)
+        microphoneMonitor.reevaluate()
+    }
+
+    func setIgnoreAlwaysOnSystemListeners(_ ignore: Bool) {
+        settings.ignoreAlwaysOnSystemListeners = ignore
+        microphoneMonitor.reevaluate()
+    }
+
+    func setMonitoringEnabled(_ enabled: Bool) {
+        settings.monitoringEnabled = enabled
     }
 
     func requestAutomationPermission() async {
@@ -89,6 +102,13 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Brings everything a visible window shows back up to date in one call.
+    func refreshVisibleState() async {
+        loginItemManager.refresh()
+        await playbackCoordinator.reconcilePlayerState()
+        await refreshAutomationPermission()
+    }
+
     func prepareForTermination() async {
         guard !isTerminating else { return }
         isTerminating = true
@@ -96,11 +116,13 @@ final class AppModel: ObservableObject {
         microphoneMonitor.stop()
     }
 
-    private func forwardChanges(from object: some ObservableObject) {
-        object.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.objectWillChange.send() }
-            .store(in: &cancellables)
+    private func applyMonitoringPreference(_ enabled: Bool) {
+        playbackCoordinator.setMonitoringEnabled(enabled)
+        if enabled {
+            microphoneMonitor.start()
+        } else {
+            microphoneMonitor.stop()
+        }
     }
 
     private func retryPlaybackIfNeeded() async {

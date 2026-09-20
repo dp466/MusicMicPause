@@ -52,6 +52,12 @@ schemes:
       targets:
         MicPause: all
         MicPauseTests: [test]
+      postActions:
+        # A scheme post-action runs after code signing; a target build phase
+        # would copy the bundle before it is signed.
+        - name: Install to /Applications
+          settingsTarget: MicPause
+          script: '"$SRCROOT/script/install_to_applications.sh"'
     run:
       config: Debug
     test:

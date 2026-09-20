@@ -16,7 +16,7 @@ No account or demo credentials are required.
 5. Stop using the microphone. Mic Pause resumes Music after the selected delay,
    but only if Mic Pause initiated the pause.
 
-Mic Pause reads the public Core Audio device-running property. It does not open
+Mic Pause reads public Core Audio device activity and capture-process metadata. It does not open
 an audio input stream and therefore does not capture or record microphone audio.
 It sends only `play`, `pause`, and `player state` Apple Events to Music through
 the `com.apple.Music.playback` scripting access group.

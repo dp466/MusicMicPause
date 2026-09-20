@@ -11,7 +11,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode-beta.app/Contents/Developer}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
 if [[ ! -x "$DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
   echo "Xcode was not found at $DEVELOPER_DIR." >&2
@@ -24,7 +24,7 @@ xcodebuild \
   -scheme MicPause \
   -configuration Debug \
   -derivedDataPath "$DERIVED_DATA" \
-  CODE_SIGNING_ALLOWED=NO \
+  MICPAUSE_SKIP_INSTALL=YES \
   test
 
 xcodebuild \

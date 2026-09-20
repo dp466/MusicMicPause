@@ -5,25 +5,8 @@ struct MicPauseBrandMark: View {
     let tint: Color
 
     var body: some View {
-        GeometryReader { proxy in
-            let size = min(proxy.size.width, proxy.size.height)
-
-            ZStack {
-                Image(systemName: "music.note")
-                    .font(.system(size: size * 0.42, weight: .bold))
-                    .offset(x: size * 0.18, y: -size * 0.16)
-                    .opacity(0.62)
-
-                Image(systemName: "mic.fill")
-                    .font(.system(size: size * 0.56, weight: .semibold))
-                    .offset(x: -size * 0.08, y: size * 0.06)
-            }
-            .symbolRenderingMode(.monochrome)
+        MicPauseMark(weight: 1.05)
             .foregroundStyle(tint)
-            .frame(width: proxy.size.width, height: proxy.size.height)
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .accessibilityHidden(true)
     }
 }
 
@@ -34,17 +17,22 @@ struct MicPauseAmbientBackdrop: View {
         ZStack {
             Color(nsColor: .windowBackgroundColor)
 
-            Circle()
-                .fill(tint.opacity(0.18))
-                .frame(width: 300, height: 300)
-                .blur(radius: 90)
-                .offset(x: 190, y: -250)
+            // Radial gradients instead of blurred circles: the same soft glow
+            // without the offscreen render pass a large blur radius forces on
+            // every frame of the tint animation.
+            RadialGradient(
+                colors: [tint.opacity(0.20), tint.opacity(0)],
+                center: UnitPoint(x: 0.86, y: 0.04),
+                startRadius: 0,
+                endRadius: 260
+            )
 
-            Circle()
-                .fill(Color.blue.opacity(0.09))
-                .frame(width: 260, height: 260)
-                .blur(radius: 95)
-                .offset(x: -210, y: 280)
+            RadialGradient(
+                colors: [Color.blue.opacity(0.11), Color.blue.opacity(0)],
+                center: UnitPoint(x: 0.10, y: 0.98),
+                startRadius: 0,
+                endRadius: 240
+            )
         }
         .ignoresSafeArea()
     }

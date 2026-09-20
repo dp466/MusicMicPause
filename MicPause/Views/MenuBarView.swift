@@ -1,52 +1,61 @@
 import AppKit
 import SwiftUI
 
+enum MenuBarPanel {
+    /// The popover has to be told this before it is shown. Left to size itself,
+    /// it anchors using its default 320 × 320 and then grows around that
+    /// origin, pushing the panel off the screen edges.
+    static let size = CGSize(width: 420, height: 580)
+}
+
 struct MenuBarView: View {
-    @ObservedObject var model: AppModel
+    let model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hasAppeared = false
 
     var body: some View {
+        // Resolved once per update and handed down; every card reads the same
+        // snapshot instead of recomputing it.
+        let status = statusPresentation
+
         ZStack {
-            MicPauseAmbientBackdrop(tint: presentation.tint)
+            MicPauseAmbientBackdrop(tint: status.tint)
                 .animation(
                     reduceMotion ? nil : .easeInOut(duration: 0.45),
-                    value: presentation.tint
+                    value: status.tint
                 )
 
             ScrollView {
                 VStack(spacing: 16) {
-                    header
-                    statusHero
-                    monitoringButton
-                    glassCardStack
+                    header(status)
+                    statusHero(status)
+                    monitoringButton(status)
+                    glassCardStack(status)
                     footer
                 }
                 .padding(20)
             }
             .scrollIndicators(.hidden)
         }
-        .frame(width: 420, height: 580)
+        .frame(width: MenuBarPanel.size.width, height: MenuBarPanel.size.height)
         .background(.ultraThinMaterial)
         .onAppear {
-            model.loginItemManager.refresh()
             withAnimation(reduceMotion ? nil : .spring(duration: 0.55, bounce: 0.18)) {
                 hasAppeared = true
             }
-
-            Task {
-                await model.refreshAutomationPermission()
-            }
+        }
+        .task {
+            await model.refreshVisibleState()
         }
     }
 
-    private var header: some View {
+    private func header(_ status: StatusPresentation) -> some View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(presentation.tint.opacity(0.14))
+                    .fill(status.tint.opacity(0.14))
 
-                MicPauseBrandMark(tint: presentation.tint)
+                MicPauseBrandMark(tint: status.tint)
                     .padding(8)
             }
             .frame(width: 44, height: 44)
@@ -64,9 +73,9 @@ struct MenuBarView: View {
             Spacer()
 
             Circle()
-                .fill(presentation.tint)
+                .fill(status.tint)
                 .frame(width: 8, height: 8)
-                .shadow(color: presentation.tint.opacity(0.7), radius: 5)
+                .shadow(color: status.tint.opacity(0.7), radius: 5)
                 .accessibilityHidden(true)
         }
         .padding(.horizontal, 2)
@@ -74,29 +83,29 @@ struct MenuBarView: View {
         .offset(y: hasAppeared ? 0 : -6)
     }
 
-    private var statusHero: some View {
+    private func statusHero(_ status: StatusPresentation) -> some View {
         VStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(presentation.tint.opacity(0.12))
+                    .fill(status.tint.opacity(0.12))
                     .frame(width: 104, height: 104)
 
                 Circle()
-                    .stroke(presentation.tint.opacity(0.24), lineWidth: 1)
+                    .stroke(status.tint.opacity(0.24), lineWidth: 1)
                     .frame(width: 88, height: 88)
 
-                Image(systemName: presentation.symbol)
+                Image(systemName: status.symbol)
                     .font(.system(size: 34, weight: .medium))
-                    .foregroundStyle(presentation.tint)
+                    .foregroundStyle(status.tint)
                     .contentTransition(.symbolEffect(.replace))
             }
             .scaleEffect(hasAppeared ? 1 : 0.92)
 
             VStack(spacing: 5) {
-                Text(presentation.title)
+                Text(status.title)
                     .font(.system(.title2, design: .rounded, weight: .semibold))
 
-                Text(presentation.detail)
+                Text(status.detail)
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -107,35 +116,37 @@ struct MenuBarView: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 22)
-        .micPauseGlass(tint: presentation.tint)
+        .micPauseGlass(tint: status.tint)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(presentation.title). \(presentation.detail)")
+        .accessibilityLabel("\(status.title). \(status.detail)")
         .opacity(hasAppeared ? 1 : 0)
         .offset(y: hasAppeared ? 0 : 8)
     }
 
     @ViewBuilder
-    private var monitoringButton: some View {
+    private func monitoringButton(_ status: StatusPresentation) -> some View {
         if #available(macOS 26.0, *) {
             monitoringButtonContent
                 .buttonStyle(.glassProminent)
-                .tint(presentation.tint)
+                .tint(status.tint)
         } else {
             monitoringButtonContent
                 .buttonStyle(.borderedProminent)
-                .tint(presentation.tint)
+                .tint(status.tint)
         }
     }
 
     private var monitoringButtonContent: some View {
-        Button {
+        let isMonitoring = model.monitoringEnabled
+
+        return Button {
             withAnimation(.snappy) {
-                model.settings.monitoringEnabled.toggle()
+                model.setMonitoringEnabled(!isMonitoring)
             }
         } label: {
             Label(
-                model.settings.monitoringEnabled ? "Pause Monitoring" : "Start Monitoring",
-                systemImage: model.settings.monitoringEnabled ? "pause.fill" : "play.fill"
+                isMonitoring ? "Pause Monitoring" : "Start Monitoring",
+                systemImage: isMonitoring ? "pause.fill" : "play.fill"
             )
             .font(.headline)
             .frame(maxWidth: .infinity)
@@ -144,27 +155,27 @@ struct MenuBarView: View {
         .controlSize(.large)
         .keyboardShortcut(.space, modifiers: [])
         .help(
-            model.settings.monitoringEnabled
+            isMonitoring
                 ? "Stop watching microphone activity"
                 : "Start watching microphone activity"
         )
     }
 
     @ViewBuilder
-    private var glassCardStack: some View {
+    private func glassCardStack(_ status: StatusPresentation) -> some View {
         if #available(macOS 26.0, *) {
             GlassEffectContainer(spacing: 16) {
-                cardContents
+                cardContents(status)
             }
         } else {
-            cardContents
+            cardContents(status)
         }
     }
 
-    private var cardContents: some View {
+    private func cardContents(_ status: StatusPresentation) -> some View {
         VStack(spacing: 16) {
             playbackCard
-            healthCard
+            healthCard(status)
         }
     }
 
@@ -209,22 +220,22 @@ struct MenuBarView: View {
         .micPauseGlass()
     }
 
-    private var healthCard: some View {
+    private func healthCard(_ status: StatusPresentation) -> some View {
         VStack(spacing: 13) {
             healthRow(
                 icon: "mic.fill",
                 title: "Microphone",
                 value: model.microphoneMonitor.deviceName,
-                tint: presentation.tint
+                tint: status.tint
             )
 
             Divider()
 
             healthRow(
-                icon: automationIcon,
+                icon: model.automationPermission.symbol,
                 title: "Apple Music access",
                 value: model.automationPermission.label,
-                tint: automationTint
+                tint: model.automationPermission.tint
             )
         }
         .padding(16)
@@ -261,7 +272,9 @@ struct MenuBarView: View {
 
     private var footer: some View {
         HStack {
-            SettingsLink {
+            Button {
+                SettingsWindowController.shared.show()
+            } label: {
                 Label("Settings", systemImage: "gearshape")
             }
             .keyboardShortcut(",")
@@ -279,8 +292,8 @@ struct MenuBarView: View {
         .padding(.top, 1)
     }
 
-    private var presentation: StatusPresentation {
-        guard model.settings.monitoringEnabled else {
+    private var statusPresentation: StatusPresentation {
+        guard model.monitoringEnabled else {
             return StatusPresentation(
                 title: "Monitoring is paused",
                 detail: "Start monitoring whenever you want Mic Pause to watch your microphone.",
@@ -327,20 +340,29 @@ struct MenuBarView: View {
             )
         }
     }
+}
 
-    private var automationIcon: String {
-        switch model.automationPermission {
+struct StatusPresentation {
+    let title: String
+    let detail: String
+    let symbol: String
+    let tint: Color
+}
+
+extension AutomationPermissionStatus {
+    var symbol: String {
+        switch self {
         case .granted:
             "checkmark.circle.fill"
         case .denied, .unavailable:
             "exclamationmark.triangle.fill"
         case .notDetermined:
-            "questionmark.circle"
+            "questionmark.circle.fill"
         }
     }
 
-    private var automationTint: Color {
-        switch model.automationPermission {
+    var tint: Color {
+        switch self {
         case .granted:
             .mint
         case .denied, .unavailable:
@@ -351,14 +373,7 @@ struct MenuBarView: View {
     }
 }
 
-private struct StatusPresentation {
-    let title: String
-    let detail: String
-    let symbol: String
-    let tint: Color
-}
-
-private extension ResumeDelay {
+extension ResumeDelay {
     var compactTitle: String {
         switch self {
         case .immediately:

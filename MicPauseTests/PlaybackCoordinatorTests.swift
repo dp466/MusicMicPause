@@ -1,5 +1,6 @@
 import XCTest
 import CoreAudio
+import Observation
 @testable import MicPause
 
 @MainActor
@@ -271,6 +272,48 @@ final class PlaybackCoordinatorTests: XCTestCase {
         XCTAssertEqual(snapshot.state, .paused)
         XCTAssertEqual(coordinator.state, .pausedByUtility)
         XCTAssertTrue(coordinator.pausedByUs)
+    }
+
+    /// Every other test stubs `sleep` out, so this one runs the real clock to
+    /// prove the configured resume delay is actually waited out.
+    func testResumeWaitsForTheConfiguredDelay() async {
+        let player = MockMusicPlayer(state: .playing)
+        let coordinator = PlaybackCoordinator(
+            player: player,
+            resumePolicy: { (true, .milliseconds(500)) }
+        )
+
+        coordinator.setMonitoringEnabled(true)
+        await coordinator.handleMicrophoneStatus(.active)
+        let paused = await player.snapshot()
+        XCTAssertEqual(paused.pauseCount, 1)
+        XCTAssertEqual(paused.playCount, 0)
+
+        let start = ContinuousClock.now
+        await coordinator.handleMicrophoneStatus(.inactive)
+        let elapsed = ContinuousClock.now - start
+        let resumed = await player.snapshot()
+
+        XCTAssertEqual(resumed.playCount, 1)
+        XCTAssertGreaterThan(elapsed, .milliseconds(400))
+    }
+
+    /// SwiftUI redraws off `state` through the Observation framework, so a
+    /// missing notification would silently freeze the interface.
+    func testStateChangeNotifiesObservers() async {
+        let player = MockMusicPlayer(state: .playing)
+        let coordinator = makeCoordinator(player: player)
+        let notified = expectation(description: "state observation fired")
+
+        withObservationTracking {
+            _ = coordinator.state
+        } onChange: {
+            notified.fulfill()
+        }
+
+        coordinator.setMonitoringEnabled(true)
+
+        await fulfillment(of: [notified], timeout: 1)
     }
 
     private func makeCoordinator(player: MockMusicPlayer) -> PlaybackCoordinator {

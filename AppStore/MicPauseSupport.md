@@ -16,9 +16,9 @@ short description of what happened.
 
 ## The microphone is not detected
 
-Mic Pause follows the current default input device. In **System Settings →
-Sound → Input**, confirm that the microphone used by your call or recording app
-is selected as the default input.
+Check **Settings → Microphone Sources** and ensure the app is not ignored.
+Mic Pause checks system-wide capture activity, including non-default inputs.
+When process information is unavailable, it falls back to the default input.
 
 ## Music did not resume
 
@@ -28,6 +28,6 @@ in Settings.
 
 ## Privacy
 
-Mic Pause reads only whether the current default microphone is active. It does
+Mic Pause reads microphone activity and capture-process metadata. It does
 not open an audio stream, record audio, analyze conversations, or transmit
 data.

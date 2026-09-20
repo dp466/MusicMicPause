@@ -10,8 +10,9 @@ PROJECT="$ROOT_DIR/MicPause.xcodeproj"
 DERIVED_DATA="${TMPDIR:-/tmp}/com.dparadis.MicPause-DerivedData"
 APP_BUNDLE="$DERIVED_DATA/Build/Products/Debug/$APP_NAME.app"
 APP_BINARY="$APP_BUNDLE/Contents/MacOS/$PROCESS_NAME"
+INSTALLED_BUNDLE="/Applications/$APP_NAME.app"
 
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode-beta.app/Contents/Developer}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
 if pgrep -x "$PROCESS_NAME" >/dev/null 2>&1; then
   /usr/bin/osascript \
@@ -33,8 +34,16 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   build
 
+# The scheme's post-action installs the signed bundle into /Applications.
+
 open_app() {
-  /usr/bin/open -n "$APP_BUNDLE"
+  # The build installs into /Applications (see script/install_to_applications.sh),
+  # so launch that copy and keep a single canonical instance.
+  if [[ -d "$INSTALLED_BUNDLE" ]]; then
+    /usr/bin/open -n "$INSTALLED_BUNDLE"
+  else
+    /usr/bin/open -n "$APP_BUNDLE"
+  fi
 }
 
 case "$MODE" in

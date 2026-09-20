@@ -21,9 +21,10 @@ struct ScreenshotHarnessApp: App {
 
 @MainActor
 final class HarnessDelegate: NSObject, NSApplicationDelegate {
-    let model = AppModel()
+    let model = AppModel(loginItemManager: LoginItemManager(enableOnFirstLaunch: false))
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        SettingsWindowController.shared.configure(model: model)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
     }

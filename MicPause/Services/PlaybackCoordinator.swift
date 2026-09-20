@@ -1,22 +1,30 @@
-import Combine
 import Foundation
+import Observation
 
 @MainActor
-final class PlaybackCoordinator: ObservableObject {
+@Observable
+final class PlaybackCoordinator {
     typealias ResumePolicy = @MainActor () -> (automatically: Bool, delay: Duration)
 
-    @Published private(set) var state: MonitoringState = .disabled
-    private(set) var pausedByUs = false
+    /// How often the coordinator re-reads Apple Music while it owns a pause.
+    ///
+    /// This only keeps the displayed state honest when playback is changed from
+    /// somewhere else — the resume path re-reads the player before acting, so
+    /// correctness never depends on this interval.
+    private static let observationInterval = Duration.seconds(2)
 
-    private let player: any MusicPlayerControlling
-    private let resumePolicy: ResumePolicy
-    private let sleep: @Sendable (Duration) async throws -> Void
+    private(set) var state: MonitoringState = .disabled
+    @ObservationIgnored private(set) var pausedByUs = false
 
-    private var monitoringEnabled = false
-    private var microphoneIsActive = false
-    private var transitionGeneration = 0
-    private var playerObservationTask: Task<Void, Never>?
-    private var cleanupTask: Task<Void, Never>?
+    @ObservationIgnored private let player: any MusicPlayerControlling
+    @ObservationIgnored private let resumePolicy: ResumePolicy
+    @ObservationIgnored private let sleep: @Sendable (Duration) async throws -> Void
+
+    @ObservationIgnored private var monitoringEnabled = false
+    @ObservationIgnored private var microphoneIsActive = false
+    @ObservationIgnored private var transitionGeneration = 0
+    @ObservationIgnored private var playerObservationTask: Task<Void, Never>?
+    @ObservationIgnored private var cleanupTask: Task<Void, Never>?
 
     init(
         player: any MusicPlayerControlling,
@@ -76,6 +84,7 @@ final class PlaybackCoordinator: ObservableObject {
 
         case .active:
             guard !microphoneIsActive || state.isUnavailable else { return }
+
             microphoneIsActive = true
             transitionGeneration += 1
             cleanupTask?.cancel()
@@ -306,11 +315,14 @@ final class PlaybackCoordinator: ObservableObject {
     }
 
     private func startPlayerObservation() {
-        playerObservationTask?.cancel()
+        guard playerObservationTask == nil else { return }
         playerObservationTask = Task { [weak self] in
             while !Task.isCancelled {
                 do {
-                    try await Task.sleep(for: .milliseconds(750))
+                    try await Task.sleep(
+                        for: Self.observationInterval,
+                        tolerance: .milliseconds(400)
+                    )
                 } catch {
                     return
                 }

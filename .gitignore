@@ -9,3 +9,6 @@ build/
 dist/
 MicPause.xcodeproj/project.xcworkspace/xcuserdata/
 MicPause.xcodeproj/xcuserdata/
+
+# Local duplicate project copies created during earlier development
+/MicPause [0-9]*.xcodeproj/

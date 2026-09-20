@@ -1,0 +1,2 @@
+# Patch files preserve upstream whitespace in context and removed lines.
+script/patches/*.patch -whitespace

@@ -27,8 +27,8 @@ export default function PrivacyPage() {
       <article className="legalContent shell">
         <h2>Microphone activity</h2>
         <p>
-          Mic Pause reads only whether the current default audio input device
-          reports that it is active. It does not open an audio stream, record
+          Mic Pause reads microphone activity and capture-process identifiers
+          reported by Core Audio. It does not open an audio stream, record
           audio, access the content of conversations, or analyze sound.
         </p>
 
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         <h2>Settings</h2>
         <p>
           Your preferences—such as automatic resume, resume delay, and whether
-          monitoring is enabled—are stored locally on your Mac using standard
+          monitoring is enabled, along with ignored capture sources—are stored locally on your Mac using standard
           system preferences.
         </p>
 
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
           the <Link href="/support">support page</Link>.
         </p>
 
-        <p>Effective date: July 28, 2026</p>
+        <p>Effective date: September 20, 2026</p>
       </article>
     </main>
   );

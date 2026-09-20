@@ -1,5 +1,7 @@
 # Mic Pause 1.0 Release Readiness
 
+> Historical App Store preparation notes from July 2026. Recheck Store requirements before submission. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
+
 ## Ready now
 
 - Three App Store screenshots are complete at 2560 × 1600.

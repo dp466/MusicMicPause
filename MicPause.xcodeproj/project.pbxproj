@@ -7,19 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		077FFAC1EF650E76C0FEBBAF /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8092314AA85423852C94CC15 /* SettingsWindow.swift */; };
 		16970AF1AD61A2F68986DC0F /* MicrophoneMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997C55018E519FC6646C5C68 /* MicrophoneMonitor.swift */; };
 		16FD28B1E7920B86508B3D80 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4854EB630A0A0B8802E35FD7 /* AppModel.swift */; };
 		1B20DF4B8A6E7BCCFD861347 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DD7F38DC75466C0DF06CAF14 /* PrivacyInfo.xcprivacy */; };
 		1D3C71C4A64F7A3BFD793481 /* MonitoringState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076C441DEAD25E1C47FAD6F8 /* MonitoringState.swift */; };
 		1D7DA4B09C9A70F9D72EAA98 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4355D8E572756AFC34774873 /* ServiceManagement.framework */; };
+		21915BE6F3ABA678ED2F3778 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB48FF348E2A3CF20A5755FA /* StatusItemController.swift */; };
 		22B50D3EF5CB3497FFECA6AC /* ResumeDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75953599B52AE33C3A46EAD6 /* ResumeDelay.swift */; };
 		24675FABD7B0563F8D64511B /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59720468752EFE12786596FE /* CoreAudio.framework */; };
+		2CB2CEA1E29498F6DA1F009A /* MicPauseMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75DD2D91B87E2043B2831710 /* MicPauseMark.swift */; };
 		32A11459A48BCFD095567A65 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D9BEFAB983C6ADE19F0796 /* PrivacyPolicyView.swift */; };
 		34366CAA51A3C407CD972FE2 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 607A563BC61FAEE303E1C1A2 /* Carbon.framework */; };
 		522F8C19AFF4DFFF8A4421E4 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695FAFF576F31E540979823C /* Log.swift */; };
 		5D9369C7195AFEF3B4BF3289 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219B5CA59751D22F763C4354 /* LoginItemManager.swift */; };
 		696BABF04404CA0A295C654C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 132936AF7527A39A93DF2FC9 /* Assets.xcassets */; };
 		7A00F113D764420F5CCDCD31 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD351B23E464CA887466233A /* SettingsView.swift */; };
+		7DC3B8D85BDD624FAED6C9BC /* AudioCaptureInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CE646C408F99B92E4004385 /* AudioCaptureInspector.swift */; };
 		8A84EA8B2AD9230EDC2454BF /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */; };
 		8D378C319821C933EBC6E5CD /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 649E0491D4DDBD8FE32B52C6 /* AppSettingsTests.swift */; };
 		9808B9F1E1E136693C4D26B2 /* MicPauseTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B34134B9B71C722087382D8D /* MicPauseTheme.swift */; };
@@ -28,6 +32,7 @@
 		AADEEFEFCBDF4B9089A4F86E /* PlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ABE040574D5913CF7C40388 /* PlaybackCoordinator.swift */; };
 		AEDFC77E46809905EB8599E6 /* AppleMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BA02D4A3D39FBA8AA280B1 /* AppleMusicController.swift */; };
 		C6DF8D40EEFA6D40CE2B660A /* MicPauseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB011F06459F60414E2D35 /* MicPauseApp.swift */; };
+		E34EF717FD4E3FC1BD69D2A4 /* LoginItemManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0154D7BA5BA88932F8F59CA /* LoginItemManagerTests.swift */; };
 		F6775E4E0D872BC0AF659B31 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57D2A097CB0F81FBD98FA50 /* AppSettings.swift */; };
 /* End PBXBuildFile section */
 
@@ -47,6 +52,7 @@
 		132936AF7527A39A93DF2FC9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1819767124274C99871A1E3C /* MicPauseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MicPauseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C4D5D3C1A9B938D36685F2A /* MusicPlayerControlling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerControlling.swift; sourceTree = "<group>"; };
+		1CE646C408F99B92E4004385 /* AudioCaptureInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureInspector.swift; sourceTree = "<group>"; };
 		20E17F698F170A851CF9E148 /* PlaybackCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackCoordinatorTests.swift; sourceTree = "<group>"; };
 		219B5CA59751D22F763C4354 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		4355D8E572756AFC34774873 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
@@ -57,6 +63,8 @@
 		649E0491D4DDBD8FE32B52C6 /* AppSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsTests.swift; sourceTree = "<group>"; };
 		695FAFF576F31E540979823C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		75953599B52AE33C3A46EAD6 /* ResumeDelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDelay.swift; sourceTree = "<group>"; };
+		75DD2D91B87E2043B2831710 /* MicPauseMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicPauseMark.swift; sourceTree = "<group>"; };
+		8092314AA85423852C94CC15 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindow.swift; sourceTree = "<group>"; };
 		997C55018E519FC6646C5C68 /* MicrophoneMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneMonitor.swift; sourceTree = "<group>"; };
 		B34134B9B71C722087382D8D /* MicPauseTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicPauseTheme.swift; sourceTree = "<group>"; };
 		B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
@@ -64,8 +72,10 @@
 		CD351B23E464CA887466233A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D0DB011F06459F60414E2D35 /* MicPauseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicPauseApp.swift; sourceTree = "<group>"; };
 		D57D2A097CB0F81FBD98FA50 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		DB48FF348E2A3CF20A5755FA /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		DD7F38DC75466C0DF06CAF14 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E871B70E2EA727351BC4DCF3 /* MicPause.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MicPause.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F0154D7BA5BA88932F8F59CA /* LoginItemManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManagerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				B8548F6B7A93D208E9C10AE9 /* MenuBarView.swift */,
+				75DD2D91B87E2043B2831710 /* MicPauseMark.swift */,
 				B34134B9B71C722087382D8D /* MicPauseTheme.swift */,
 				C2D9BEFAB983C6ADE19F0796 /* PrivacyPolicyView.swift */,
 				CD351B23E464CA887466233A /* SettingsView.swift */,
@@ -97,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				649E0491D4DDBD8FE32B52C6 /* AppSettingsTests.swift */,
+				F0154D7BA5BA88932F8F59CA /* LoginItemManagerTests.swift */,
 				20E17F698F170A851CF9E148 /* PlaybackCoordinatorTests.swift */,
 			);
 			path = MicPauseTests;
@@ -124,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				58BA02D4A3D39FBA8AA280B1 /* AppleMusicController.swift */,
+				1CE646C408F99B92E4004385 /* AudioCaptureInspector.swift */,
 				219B5CA59751D22F763C4354 /* LoginItemManager.swift */,
 				997C55018E519FC6646C5C68 /* MicrophoneMonitor.swift */,
 				1C4D5D3C1A9B938D36685F2A /* MusicPlayerControlling.swift */,
@@ -136,6 +149,8 @@
 			isa = PBXGroup;
 			children = (
 				D0DB011F06459F60414E2D35 /* MicPauseApp.swift */,
+				8092314AA85423852C94CC15 /* SettingsWindow.swift */,
+				DB48FF348E2A3CF20A5755FA /* StatusItemController.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -291,10 +306,12 @@
 				16FD28B1E7920B86508B3D80 /* AppModel.swift in Sources */,
 				F6775E4E0D872BC0AF659B31 /* AppSettings.swift in Sources */,
 				AEDFC77E46809905EB8599E6 /* AppleMusicController.swift in Sources */,
+				7DC3B8D85BDD624FAED6C9BC /* AudioCaptureInspector.swift in Sources */,
 				522F8C19AFF4DFFF8A4421E4 /* Log.swift in Sources */,
 				5D9369C7195AFEF3B4BF3289 /* LoginItemManager.swift in Sources */,
 				8A84EA8B2AD9230EDC2454BF /* MenuBarView.swift in Sources */,
 				C6DF8D40EEFA6D40CE2B660A /* MicPauseApp.swift in Sources */,
+				2CB2CEA1E29498F6DA1F009A /* MicPauseMark.swift in Sources */,
 				9808B9F1E1E136693C4D26B2 /* MicPauseTheme.swift in Sources */,
 				16970AF1AD61A2F68986DC0F /* MicrophoneMonitor.swift in Sources */,
 				1D3C71C4A64F7A3BFD793481 /* MonitoringState.swift in Sources */,
@@ -303,6 +320,8 @@
 				32A11459A48BCFD095567A65 /* PrivacyPolicyView.swift in Sources */,
 				22B50D3EF5CB3497FFECA6AC /* ResumeDelay.swift in Sources */,
 				7A00F113D764420F5CCDCD31 /* SettingsView.swift in Sources */,
+				077FFAC1EF650E76C0FEBBAF /* SettingsWindow.swift in Sources */,
+				21915BE6F3ABA678ED2F3778 /* StatusItemController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -311,6 +330,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D378C319821C933EBC6E5CD /* AppSettingsTests.swift in Sources */,
+				E34EF717FD4E3FC1BD69D2A4 /* LoginItemManagerTests.swift in Sources */,
 				9BF880F8ABCE72B9810D2B95 /* PlaybackCoordinatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

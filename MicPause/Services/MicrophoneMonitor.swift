@@ -1,23 +1,33 @@
-import Combine
 import CoreAudio
 import Foundation
+import Observation
 
 @MainActor
-final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
-    @Published private(set) var deviceName = "No input device"
-    @Published private(set) var status: MicrophoneStatus = .unavailable("Monitoring unavailable")
+@Observable
+final class MicrophoneMonitor {
+    private(set) var deviceName = "No input device"
+    private(set) var status: MicrophoneStatus = .unavailable("Monitoring unavailable")
 
-    var onStatusChange: (@MainActor (MicrophoneStatus) -> Void)?
+    /// Everything Core Audio reports as capturing, ignored or not, so the
+    /// settings window can offer them.
+    private(set) var captureSources: [CaptureSource] = []
 
-    private let listenerQueue = DispatchQueue(label: "com.dparadis.MicPause.core-audio")
-    private let debounceDuration: Duration
-    private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
-    private var runningListener: AudioObjectPropertyListenerBlock?
-    private var currentDeviceID = AudioObjectID(kAudioObjectUnknown)
-    private var runningAddress: AudioObjectPropertyAddress?
-    private var debounceTask: Task<Void, Never>?
-    private var refreshTask: Task<Void, Never>?
-    private var started = false
+    @ObservationIgnored var onStatusChange: (@MainActor (MicrophoneStatus) -> Void)?
+
+    /// Decides whether a capturing process should pause playback.
+    @ObservationIgnored var shouldIgnoreSource: (@MainActor (CaptureSource) -> Bool)?
+
+    @ObservationIgnored private let listenerQueue = DispatchQueue(
+        label: "com.dparadis.MicPause.core-audio"
+    )
+    @ObservationIgnored private let debounceDuration: Duration
+    @ObservationIgnored private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
+    @ObservationIgnored private var runningListener: AudioObjectPropertyListenerBlock?
+    @ObservationIgnored private var currentDeviceID = AudioObjectID(kAudioObjectUnknown)
+    @ObservationIgnored private var isBoundToDevice = false
+    @ObservationIgnored private var debounceTask: Task<Void, Never>?
+    @ObservationIgnored private var refreshTask: Task<Void, Never>?
+    @ObservationIgnored private var started = false
 
     init(debounceDuration: Duration = .milliseconds(250)) {
         self.debounceDuration = debounceDuration
@@ -35,11 +45,24 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         guard started else { return }
         started = false
         debounceTask?.cancel()
+        debounceTask = nil
         refreshTask?.cancel()
         refreshTask = nil
         removeDeviceListener()
         removeDefaultDeviceListener()
         publish(.unavailable("Monitoring disabled"))
+    }
+
+    /// Re-evaluates immediately, for when the ignore rules change underneath.
+    func reevaluate() {
+        guard started else { return }
+        debounceTask?.cancel()
+        debounceTask = nil
+        do {
+            try readAndPublishRunningState()
+        } catch {
+            publish(.unavailable(error.localizedDescription))
+        }
     }
 
     private func installDefaultDeviceListener() {
@@ -80,6 +103,7 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     private func rebindDefaultInputDevice() {
         guard started else { return }
         debounceTask?.cancel()
+        debounceTask = nil
         removeDeviceListener()
 
         do {
@@ -92,14 +116,15 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
             }
 
             currentDeviceID = deviceID
+            isBoundToDevice = true
             deviceName = (try? Self.deviceName(for: deviceID)) ?? "Unknown microphone"
-            runningAddress = Self.runningStateAddress
 
             installRunningListener()
             scheduleRunningStateRead()
             Log.microphone.info("Monitoring the current default input device")
         } catch {
             currentDeviceID = AudioObjectID(kAudioObjectUnknown)
+            isBoundToDevice = false
             deviceName = "No input device"
             publish(.unavailable(error.localizedDescription))
             Log.microphone.error(
@@ -108,12 +133,16 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         }
     }
 
+    /// A safety net for the rare case where Core Audio does not deliver a
+    /// property notification. Each tick also refreshes the system-wide capture process list.
     private func startPeriodicRefresh() {
         refreshTask?.cancel()
         refreshTask = Task { [weak self] in
             while !Task.isCancelled {
                 do {
-                    try await Task.sleep(for: .seconds(1))
+                    // Tolerance lets the system coalesce this wake-up with
+                    // others instead of firing its own precise timer.
+                    try await Task.sleep(for: .seconds(1), tolerance: .milliseconds(250))
                 } catch {
                     return
                 }
@@ -136,14 +165,19 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
                 return
             }
 
-            scheduleRunningStateRead()
+            // The poll is already coarse, so it reads directly rather than
+            // spawning another debounce task every second. Bursts arriving
+            // through the property listener stay debounced.
+            guard debounceTask == nil else { return }
+            try readAndPublishRunningState()
         } catch {
             publish(.unavailable(error.localizedDescription))
         }
     }
 
     private func installRunningListener() {
-        guard currentDeviceID != kAudioObjectUnknown, var address = runningAddress else { return }
+        guard isBoundToDevice else { return }
+        var address = Self.runningStateAddress
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
             Task { @MainActor [weak self] in
                 self?.scheduleRunningStateRead()
@@ -166,14 +200,13 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     }
 
     private func removeDeviceListener() {
-        guard currentDeviceID != kAudioObjectUnknown,
-              var address = runningAddress,
-              let runningListener else {
+        defer {
             currentDeviceID = AudioObjectID(kAudioObjectUnknown)
-            runningAddress = nil
-            return
+            isBoundToDevice = false
         }
+        guard isBoundToDevice, let runningListener else { return }
 
+        var address = Self.runningStateAddress
         AudioObjectRemovePropertyListenerBlock(
             currentDeviceID,
             &address,
@@ -181,18 +214,30 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
             runningListener
         )
         self.runningListener = nil
-        currentDeviceID = AudioObjectID(kAudioObjectUnknown)
-        runningAddress = nil
     }
 
     private func scheduleRunningStateRead() {
         guard started else { return }
+
+        // Leading edge: a microphone going hot has to reach the menu bar right
+        // away, so the first notification of a burst is read immediately rather
+        // than behind the debounce. Only a reading that already names the
+        // capturing processes may act this early — an unresolved one would
+        // pause playback the ignore rules exclude and then undo it a fraction
+        // of a second later.
+        if debounceTask == nil, (try? readRunningState()) == .active {
+            publish(.active)
+        }
+
+        // Trailing edge: the settled state of the burst still decides. This is
+        // what turns the microphone back off, resolves a late process list, and
+        // reports a read failure.
         debounceTask?.cancel()
         debounceTask = Task { [weak self] in
             guard let self else { return }
+            defer { if !Task.isCancelled { debounceTask = nil } }
             do {
                 try await Task.sleep(for: debounceDuration)
-                guard !Task.isCancelled else { return }
                 try readAndPublishRunningState()
             } catch is CancellationError {
                 return
@@ -202,15 +247,54 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         }
     }
 
-    private func readAndPublishRunningState() throws {
-        guard currentDeviceID != kAudioObjectUnknown, let runningAddress else {
+    /// What a single reading of the running state concluded.
+    private enum RunningStateReading: Equatable {
+        case active
+        case inactive
+        /// Something is capturing, but Core Audio has not named the processes
+        /// yet, so the ignore rules cannot be applied to it.
+        case unresolved
+    }
+
+    private func readRunningState() throws -> RunningStateReading {
+        guard isBoundToDevice else {
             throw CoreAudioMonitorError.noDefaultInput
         }
         let running: UInt32 = try Self.readProperty(
             objectID: currentDeviceID,
-            address: runningAddress
+            address: Self.runningStateAddress
         )
-        publish(running == 0 ? .inactive : .active)
+
+        // Process capture is system-wide: an app can select a microphone other
+        // than the default. The default-device flag is only a fallback when
+        // Core Audio cannot attribute capture to a process.
+        let sources = AudioCaptureInspector.capturingSources()
+        if sources != captureSources {
+            captureSources = sources
+        }
+        guard !sources.isEmpty else {
+            return running != 0 ? .unresolved : .inactive
+        }
+
+        Log.microphone.debug(
+            "Capturing: \(sources.map(\.identifier).joined(separator: ", "), privacy: .private)"
+        )
+        return sources.contains { !(shouldIgnoreSource?($0) ?? false) }
+            ? .active
+            : .inactive
+    }
+
+    private func readAndPublishRunningState() throws {
+        switch try readRunningState() {
+        case .active:
+            publish(.active)
+        case .inactive:
+            publish(.inactive)
+        case .unresolved:
+            // Core Audio would not name the processes; fall back to trusting
+            // the device flag rather than missing a real call.
+            publish(.active)
+        }
     }
 
     private func publish(_ newStatus: MicrophoneStatus) {
@@ -229,21 +313,17 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         onStatusChange?(newStatus)
     }
 
-    private static var defaultInputAddress: AudioObjectPropertyAddress {
-        AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultInputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-    }
+    private static let defaultInputAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioHardwarePropertyDefaultInputDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
 
-    static var runningStateAddress: AudioObjectPropertyAddress {
-        AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-    }
+    static let runningStateAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
 
     private static func deviceName(for deviceID: AudioObjectID) throws -> String {
         var address = AudioObjectPropertyAddress(

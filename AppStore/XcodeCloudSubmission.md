@@ -1,5 +1,7 @@
 # Xcode Cloud Submission — Mic Pause 1.0
 
+> Historical App Store preparation notes from July 2026. Recheck Store requirements before submission. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
+
 Use this route while the development Mac can run only Xcode 27 beta.
 
 ## Why

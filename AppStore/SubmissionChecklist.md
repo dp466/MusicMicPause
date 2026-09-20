@@ -1,5 +1,7 @@
 # App Store Submission Checklist
 
+> Historical App Store preparation notes from July 2026. Recheck Store requirements before submission. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
+
 ## Owner decisions and account setup
 
 - [x] Set version 1.0 to **Free**.

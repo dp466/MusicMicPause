@@ -3,13 +3,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HARNESS_SOURCE="$ROOT_DIR/AppStore/ScreenshotHarness"
-HARNESS_BUILD="$ROOT_DIR/.build/ScreenshotHarness"
+HARNESS_STAGE="${TMPDIR:-/tmp}/com.dparadis.MicPause-ScreenshotSource"
+HARNESS_BUILD="$HARNESS_STAGE/AppStore/ScreenshotHarness"
 DERIVED_DATA="${TMPDIR:-/tmp}/com.dparadis.MicPause-ScreenshotHarness"
 APP_BUNDLE="$DERIVED_DATA/Build/Products/Debug/MicPauseScreenshotHarness.app"
 PROCESS_NAME="MicPauseScreenshotHarness"
 EXPECTED_BUNDLE_ID="com.dparadis.MicPause.ScreenshotHarness"
 
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode-beta.app/Contents/Developer}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
 if ! command -v xcodegen >/dev/null 2>&1; then
   echo "xcodegen is required to build the screenshot harness." >&2
@@ -18,9 +19,11 @@ fi
 
 pkill -TERM -x "$PROCESS_NAME" >/dev/null 2>&1 || true
 mkdir -p "$HARNESS_BUILD"
+/usr/bin/rsync -a "$ROOT_DIR/MicPause" "$HARNESS_STAGE/"
+/usr/bin/rsync -a "$HARNESS_SOURCE/" "$HARNESS_BUILD/"
 
 xcodegen generate \
-  --spec "$HARNESS_SOURCE/project.yml" \
+  --spec "$HARNESS_BUILD/project.yml" \
   --project "$HARNESS_BUILD"
 
 xcodebuild \
@@ -28,6 +31,7 @@ xcodebuild \
   -scheme MicPauseScreenshotHarness \
   -configuration Debug \
   -derivedDataPath "$DERIVED_DATA" \
+  INFOPLIST_FILE="$HARNESS_SOURCE/Info.plist" \
   build
 
 INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"

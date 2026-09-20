@@ -22,7 +22,7 @@ struct PrivacyPolicyView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     policySection(
                         "Audio and microphone activity",
-                        "Mic Pause reads only the current default input device’s running state from Core Audio. It does not access, record, analyze, save, or transmit audio."
+                        "Mic Pause reads microphone activity and capture-process identifiers reported by Core Audio. It does not access, record, analyze, save, or transmit audio."
                     )
                     policySection(
                         "Apple Music",
@@ -34,7 +34,7 @@ struct PrivacyPolicyView: View {
                     )
                     policySection(
                         "Preferences",
-                        "Your monitoring, automatic-resume, and resume-delay preferences are stored locally on your Mac using system preferences. They are not shared with the developer."
+                        "Your monitoring, automatic-resume, resume-delay, and ignored-source preferences are stored locally on your Mac using system preferences. They are not shared with the developer."
                     )
                     policySection(
                         "Changes",

@@ -2,8 +2,7 @@ import AppKit
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var model: AppModel
-    @Environment(\.scenePhase) private var scenePhase
+    let model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showingPrivacyPolicy = false
     @State private var hasAppeared = false
@@ -30,21 +29,15 @@ struct SettingsView: View {
         .frame(width: 620, height: 680)
         .background(.ultraThinMaterial)
         .task {
-            model.loginItemManager.refresh()
-            await model.refreshAutomationPermission()
+            await model.refreshVisibleState()
         }
         .onAppear {
             withAnimation(reduceMotion ? nil : .spring(duration: 0.55, bounce: 0.14)) {
                 hasAppeared = true
             }
         }
-        .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
-            Task {
-                model.loginItemManager.refresh()
-                await model.refreshAutomationPermission()
-            }
-        }
+        // Re-showing the window does not re-run `task`; the window controller
+        // refreshes the model when it brings the window forward.
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
         }
@@ -74,8 +67,8 @@ struct SettingsView: View {
             Spacer()
 
             Label(
-                model.settings.monitoringEnabled ? "Monitoring" : "Paused",
-                systemImage: model.settings.monitoringEnabled ? "waveform" : "pause.fill"
+                model.monitoringEnabled ? "Monitoring" : "Paused",
+                systemImage: model.monitoringEnabled ? "waveform" : "pause.fill"
             )
             .font(.caption.weight(.semibold))
             .foregroundStyle(settingsTint)
@@ -83,7 +76,7 @@ struct SettingsView: View {
             .padding(.vertical, 7)
             .background(settingsTint.opacity(0.11), in: Capsule())
             .accessibilityLabel(
-                model.settings.monitoringEnabled
+                model.monitoringEnabled
                     ? "Microphone monitoring is enabled"
                     : "Microphone monitoring is paused"
             )
@@ -107,6 +100,7 @@ struct SettingsView: View {
             generalCard
             playbackCard
             microphoneCard
+            captureSourcesCard
             automationCard
             aboutCard
         }
@@ -122,8 +116,8 @@ struct SettingsView: View {
                 title: "Enable monitoring",
                 detail: "Watch the selected microphone for activity.",
                 isOn: Binding(
-                    get: { model.settings.monitoringEnabled },
-                    set: { model.settings.monitoringEnabled = $0 }
+                    get: { model.monitoringEnabled },
+                    set: { model.setMonitoringEnabled($0) }
                 )
             )
 
@@ -235,6 +229,134 @@ struct SettingsView: View {
         }
     }
 
+    private var captureSourcesCard: some View {
+        settingsCard(
+            icon: "waveform.badge.exclamationmark",
+            title: "Microphone Sources",
+            subtitle: "Choose which apps should pause playback"
+        ) {
+            settingToggle(
+                title: "Ignore background listeners",
+                detail: "Skips always-on system listeners such as Sound Recognition and Voice Control. Dictation and Siri still pause playback.",
+                isOn: Binding(
+                    get: { model.settings.ignoreAlwaysOnSystemListeners },
+                    set: { model.setIgnoreAlwaysOnSystemListeners($0) }
+                )
+            )
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("USING THE MICROPHONE NOW")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(0.6)
+
+                if model.microphoneMonitor.captureSources.isEmpty {
+                    Text("Nothing is using the microphone.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(model.microphoneMonitor.captureSources) { source in
+                        captureSourceRow(source)
+                    }
+                }
+            }
+
+            if !model.settings.ignoredCaptureIdentifiers.isEmpty {
+                Divider()
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("IGNORED APPS")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .tracking(0.6)
+
+                    ForEach(model.settings.ignoredCaptureIdentifiers, id: \.self) { identifier in
+                        HStack(spacing: 12) {
+                            Image(systemName: "speaker.slash.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
+
+                            Text(identifier)
+                                .font(.callout)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+
+                            Spacer(minLength: 12)
+
+                            Button("Stop Ignoring") {
+                                model.stopIgnoringCaptureSource(identifier)
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func captureSourceRow(_ source: CaptureSource) -> some View {
+        let isIgnored = model.settings.ignores(source)
+
+        return HStack(spacing: 12) {
+            Image(systemName: captureSourceIcon(source))
+                .font(.system(size: 12))
+                .foregroundStyle(isIgnored ? Color.secondary : settingsTint)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(source.name)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Text(captureSourceCaption(source))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 12)
+
+            if isIgnored {
+                Text("Ignored")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Button("Ignore") {
+                    model.ignoreCaptureSource(source)
+                }
+                .controlSize(.small)
+            }
+        }
+    }
+
+    private func captureSourceCaption(_ source: CaptureSource) -> String {
+        switch source.kind {
+        case .application:
+            "App"
+        case .speechService:
+            "Dictation and Siri — pauses playback unless you ignore it"
+        case .systemListener:
+            model.settings.ignoreAlwaysOnSystemListeners
+                ? "Background listener — ignored"
+                : "Background listener"
+        }
+    }
+
+    private func captureSourceIcon(_ source: CaptureSource) -> String {
+        switch source.kind {
+        case .application:
+            "app.badge"
+        case .speechService:
+            "waveform"
+        case .systemListener:
+            "gearshape.fill"
+        }
+    }
+
     private var automationCard: some View {
         settingsCard(
             icon: "music.note.list",
@@ -244,8 +366,8 @@ struct SettingsView: View {
             statusRow(
                 title: "Permission",
                 value: model.automationPermission.label,
-                icon: automationStatusIcon,
-                tint: automationStatusTint
+                icon: model.automationPermission.symbol,
+                tint: model.automationPermission.tint
             )
 
             Divider()
@@ -401,7 +523,7 @@ struct SettingsView: View {
     }
 
     private var settingsTint: Color {
-        model.settings.monitoringEnabled ? .mint : .secondary
+        model.monitoringEnabled ? .mint : .secondary
     }
 
     private var microphoneStatusIcon: String {
@@ -431,28 +553,6 @@ struct SettingsView: View {
             .pink
         case .unavailable:
             .red
-        }
-    }
-
-    private var automationStatusIcon: String {
-        switch model.automationPermission {
-        case .granted:
-            "checkmark.circle.fill"
-        case .denied, .unavailable:
-            "exclamationmark.triangle.fill"
-        case .notDetermined:
-            "questionmark.circle.fill"
-        }
-    }
-
-    private var automationStatusTint: Color {
-        switch model.automationPermission {
-        case .granted:
-            .mint
-        case .denied, .unavailable:
-            .red
-        case .notDetermined:
-            .orange
         }
     }
 

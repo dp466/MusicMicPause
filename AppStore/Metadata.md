@@ -26,7 +26,7 @@ becomes active and resuming when you are finished, without recording audio.
 ## Description
 
 Mic Pause is a lightweight macOS menu-bar utility that pauses Apple Music when
-your current default microphone becomes active.
+your microphone becomes active.
 
 When your call, recording, or voice chat ends, Mic Pause can resume playback
 after a delay you choose. It resumes only when it initiated the pause, so music
@@ -34,15 +34,15 @@ you paused yourself stays paused.
 
 Features:
 
-• Automatic Apple Music pause when the default microphone is active
+• Automatic Apple Music pause when your microphone is active
 • Optional automatic resume with an immediate, 1-, 2-, or 5-second delay
 • Respects manual playback changes
 • Follows changes to the default input device
-• Optional Launch at Login
+• Launch at Login by default, with an in-app on/off control
 • Clear menu-bar and Settings status
 • No audio recording, analytics, advertising, accounts, or network access
 
-Mic Pause reads only the Core Audio device-running state. It never opens an
+Mic Pause reads microphone activity and capture-process metadata from Core Audio. It never opens an
 audio stream, records audio, analyzes conversations, or transmits data.
 
 Requires macOS 14 or later and Apple Music.

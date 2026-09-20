@@ -38,9 +38,9 @@ export default function SupportPage() {
 
         <h2>The microphone is not detected</h2>
         <p>
-          Mic Pause follows the current default input device. In System Settings
-          → Sound → Input, confirm that the microphone used by your call or
-          recording app is selected as the default input.
+          Check Settings → Microphone Sources and ensure the app is not ignored.
+          Mic Pause checks system-wide capture activity, including non-default
+          inputs. When attribution is unavailable, it uses the default input.
         </p>
 
         <h2>Music did not resume</h2>
