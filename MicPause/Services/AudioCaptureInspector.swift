@@ -64,6 +64,12 @@ enum AudioCaptureInspector {
         "com.apple.soundanalysisd": "Sound Recognition",
         "com.apple.universalaccessd": "Voice Control",
         "com.apple.avconferenced": "FaceTime & Continuity",
+        "com.apple.mobilephone": "Phone",
+        "com.microsoft.teams2": "Microsoft Teams",
+        "us.zoom.xos": "Zoom",
+        "com.openai.codex": "ChatGPT",
+        "com.openai.chat": "ChatGPT",
+        "com.goodsnooze.macwhisper": "MacWhisper",
     ]
 
     static func capturingSources() -> [CaptureSource] {
@@ -75,7 +81,7 @@ enum AudioCaptureInspector {
             .filter { seen.insert($0.identifier).inserted }
     }
 
-    private static func source(for object: AudioObjectID) -> CaptureSource? {
+    static func source(for object: AudioObjectID) -> CaptureSource? {
         let identifier = bundleIdentifier(for: object).flatMap { $0.isEmpty ? nil : $0 }
             ?? executableName(for: object)
         guard let identifier else { return nil }
@@ -91,7 +97,7 @@ enum AudioCaptureInspector {
         )
     }
 
-    private static func processObjects() -> [AudioObjectID] {
+    static func processObjects() -> [AudioObjectID] {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyProcessObjectList,
             mScope: kAudioObjectPropertyScopeGlobal,
@@ -114,7 +120,7 @@ enum AudioCaptureInspector {
         return objects
     }
 
-    private static func isRunningInput(_ object: AudioObjectID) -> Bool {
+    static func isRunningInput(_ object: AudioObjectID) -> Bool {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioProcessPropertyIsRunningInput,
             mScope: kAudioObjectPropertyScopeGlobal,

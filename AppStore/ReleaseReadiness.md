@@ -1,6 +1,6 @@
 # Mic Pause 1.0 Release Readiness
 
-> Historical App Store preparation notes from July 2026. Recheck Store requirements before submission. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
+> Historical App Store preparation notes from July 2026. The current main target adds Accessibility-based Meeting Assist and is intentionally unsandboxed, so this readiness snapshot no longer describes the build. Split or remove that capability and restore App Sandbox before pursuing the Store path. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
 
 ## Ready now
 

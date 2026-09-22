@@ -14,6 +14,11 @@ final class MicrophoneMonitor {
 
     @ObservationIgnored var onStatusChange: (@MainActor (MicrophoneStatus) -> Void)?
 
+    /// Fires whenever the attributed process set changes, even if the overall
+    /// microphone status remains active. Meeting Assist relies on this to spot
+    /// dictation beginning during an already-active call.
+    @ObservationIgnored var onCaptureSourcesChange: (@MainActor ([CaptureSource]) -> Void)?
+
     /// Decides whether a capturing process should pause playback.
     @ObservationIgnored var shouldIgnoreSource: (@MainActor (CaptureSource) -> Bool)?
 
@@ -23,6 +28,10 @@ final class MicrophoneMonitor {
     @ObservationIgnored private let debounceDuration: Duration
     @ObservationIgnored private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
     @ObservationIgnored private var runningListener: AudioObjectPropertyListenerBlock?
+    @ObservationIgnored private var processListListener: AudioObjectPropertyListenerBlock?
+    @ObservationIgnored private var processRunningListeners: [
+        AudioObjectID: AudioObjectPropertyListenerBlock
+    ] = [:]
     @ObservationIgnored private var currentDeviceID = AudioObjectID(kAudioObjectUnknown)
     @ObservationIgnored private var isBoundToDevice = false
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
@@ -37,6 +46,8 @@ final class MicrophoneMonitor {
         guard !started else { return }
         started = true
         installDefaultDeviceListener()
+        installProcessListListener()
+        refreshProcessRunningListeners()
         rebindDefaultInputDevice()
         startPeriodicRefresh()
     }
@@ -50,6 +61,8 @@ final class MicrophoneMonitor {
         refreshTask = nil
         removeDeviceListener()
         removeDefaultDeviceListener()
+        removeProcessListeners()
+        updateCaptureSources([])
         publish(.unavailable("Monitoring disabled"))
     }
 
@@ -98,6 +111,82 @@ final class MicrophoneMonitor {
             defaultDeviceListener
         )
         self.defaultDeviceListener = nil
+    }
+
+    private func installProcessListListener() {
+        var address = Self.processListAddress
+        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.started else { return }
+                self.refreshProcessRunningListeners()
+                self.scheduleRunningStateRead()
+            }
+        }
+
+        let result = AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &address,
+            listenerQueue,
+            block
+        )
+        guard result == noErr else {
+            Log.microphone.error("Capture-process listener failed with OSStatus \(result)")
+            return
+        }
+        processListListener = block
+    }
+
+    private func refreshProcessRunningListeners() {
+        let currentObjects = Set(AudioCaptureInspector.processObjects())
+
+        for object in Array(processRunningListeners.keys) where !currentObjects.contains(object) {
+            removeProcessRunningListener(for: object)
+        }
+
+        for object in currentObjects where processRunningListeners[object] == nil {
+            var address = Self.processRunningInputAddress
+            let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+                Task { @MainActor [weak self] in
+                    self?.scheduleRunningStateRead()
+                }
+            }
+            let result = AudioObjectAddPropertyListenerBlock(
+                object,
+                &address,
+                listenerQueue,
+                block
+            )
+            if result == noErr {
+                processRunningListeners[object] = block
+            } else {
+                Log.microphone.debug(
+                    "Could not observe capture process \(object): OSStatus \(result)"
+                )
+            }
+        }
+    }
+
+    private func removeProcessRunningListener(for object: AudioObjectID) {
+        guard let block = processRunningListeners.removeValue(forKey: object) else { return }
+        var address = Self.processRunningInputAddress
+        AudioObjectRemovePropertyListenerBlock(object, &address, listenerQueue, block)
+    }
+
+    private func removeProcessListeners() {
+        if let processListListener {
+            var address = Self.processListAddress
+            AudioObjectRemovePropertyListenerBlock(
+                AudioObjectID(kAudioObjectSystemObject),
+                &address,
+                listenerQueue,
+                processListListener
+            )
+            self.processListListener = nil
+        }
+
+        for object in Array(processRunningListeners.keys) {
+            removeProcessRunningListener(for: object)
+        }
     }
 
     private func rebindDefaultInputDevice() {
@@ -155,6 +244,7 @@ final class MicrophoneMonitor {
 
     private func refreshBindingAndRunningState() {
         do {
+            refreshProcessRunningListeners()
             let defaultDeviceID: AudioObjectID = try Self.readProperty(
                 objectID: AudioObjectID(kAudioObjectSystemObject),
                 address: Self.defaultInputAddress
@@ -269,9 +359,7 @@ final class MicrophoneMonitor {
         // than the default. The default-device flag is only a fallback when
         // Core Audio cannot attribute capture to a process.
         let sources = AudioCaptureInspector.capturingSources()
-        if sources != captureSources {
-            captureSources = sources
-        }
+        updateCaptureSources(sources)
         guard !sources.isEmpty else {
             return running != 0 ? .unresolved : .inactive
         }
@@ -313,6 +401,12 @@ final class MicrophoneMonitor {
         onStatusChange?(newStatus)
     }
 
+    private func updateCaptureSources(_ sources: [CaptureSource]) {
+        guard sources != captureSources else { return }
+        captureSources = sources
+        onCaptureSourcesChange?(sources)
+    }
+
     private static let defaultInputAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwarePropertyDefaultInputDevice,
         mScope: kAudioObjectPropertyScopeGlobal,
@@ -321,6 +415,18 @@ final class MicrophoneMonitor {
 
     static let runningStateAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+
+    private static let processListAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioHardwarePropertyProcessObjectList,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+
+    private static let processRunningInputAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioProcessPropertyIsRunningInput,
         mScope: kAudioObjectPropertyScopeGlobal,
         mElement: kAudioObjectPropertyElementMain
     )

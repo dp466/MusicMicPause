@@ -10,7 +10,13 @@ final class AppSettingsTests: XCTestCase {
 
             XCTAssertTrue(settings.monitoringEnabled)
             XCTAssertTrue(settings.automaticResume)
+            XCTAssertFalse(settings.feedbackSoundsEnabled)
             XCTAssertEqual(settings.resumeDelay, .twoSeconds)
+            XCTAssertFalse(settings.meetingAssistEnabled)
+            XCTAssertTrue(settings.lowerMeetingAudio)
+            XCTAssertEqual(settings.reducedMeetingVolume, 0.25)
+            XCTAssertTrue(settings.muteMeetingMicrophone)
+            XCTAssertTrue(settings.detectPhoneCalls)
         }
     }
 
@@ -19,13 +25,25 @@ final class AppSettingsTests: XCTestCase {
             var settings: AppSettings? = AppSettings(defaults: defaults)
             settings?.monitoringEnabled = false
             settings?.automaticResume = false
+            settings?.feedbackSoundsEnabled = true
             settings?.resumeDelay = .fiveSeconds
+            settings?.meetingAssistEnabled = true
+            settings?.lowerMeetingAudio = false
+            settings?.reducedMeetingVolume = 0.4
+            settings?.muteMeetingMicrophone = false
+            settings?.detectPhoneCalls = false
             settings = nil
 
             let restored = AppSettings(defaults: defaults)
             XCTAssertFalse(restored.monitoringEnabled)
             XCTAssertFalse(restored.automaticResume)
+            XCTAssertTrue(restored.feedbackSoundsEnabled)
             XCTAssertEqual(restored.resumeDelay, .fiveSeconds)
+            XCTAssertTrue(restored.meetingAssistEnabled)
+            XCTAssertFalse(restored.lowerMeetingAudio)
+            XCTAssertEqual(restored.reducedMeetingVolume, 0.4)
+            XCTAssertFalse(restored.muteMeetingMicrophone)
+            XCTAssertFalse(restored.detectPhoneCalls)
         }
     }
 

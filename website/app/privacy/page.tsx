@@ -39,11 +39,35 @@ export default function PrivacyPage() {
           access your music library, listening history, or Apple Account.
         </p>
 
+        <h2>Meeting controls and Phone calls</h2>
+        <p>
+          When you enable Meeting Assist or Phone-call detection and grant
+          Accessibility permission, Mic Pause reads control roles, labels,
+          enabled states, and available actions in supported meeting apps. It
+          presses only a verified Mute or Unmute control. It may read whether
+          Phone or FaceTime exposes an enabled Hang Up control to recognize a
+          call, but it never presses that control.
+        </p>
+
+        <h2>System volume</h2>
+        <p>
+          Meeting Assist can temporarily lower the default output device’s
+          software volume. It restores only the exact value it changed and
+          leaves a manual volume change alone.
+        </p>
+
+        <h2>Feedback sounds</h2>
+        <p>
+          If enabled, Mic Pause plays brief locally generated tones for Music
+          and meeting-microphone changes. The tones contain no microphone audio
+          and are off by default.
+        </p>
+
         <h2>Settings</h2>
         <p>
-          Your preferences—such as automatic resume, resume delay, and whether
-          monitoring is enabled, along with ignored capture sources—are stored locally on your Mac using standard
-          system preferences.
+          Your monitoring, playback, Meeting Assist, Phone-call detection,
+          feedback-sound, and ignored-source preferences are stored locally on
+          your Mac using standard system preferences.
         </p>
 
         <h2>Accounts, analytics, and networking</h2>
@@ -54,8 +78,9 @@ export default function PrivacyPage() {
 
         <h2>Changes</h2>
         <p>
-          If the app’s privacy practices change, this policy and the App Store
-          privacy disclosure will be updated before those changes are released.
+          If the app’s privacy practices change, this policy and any applicable
+          distribution privacy disclosure will be updated before those changes
+          are released.
         </p>
 
         <h2>Contact</h2>
@@ -64,7 +89,7 @@ export default function PrivacyPage() {
           the <Link href="/support">support page</Link>.
         </p>
 
-        <p>Effective date: September 20, 2026</p>
+        <p>Effective date: September 22, 2026</p>
       </article>
     </main>
   );

@@ -21,6 +21,7 @@ Start a call, record a voice note, or use dictation. **Mic Pause automatically p
 | **Resume on your terms.** Choose immediately, 1, 2, or 5 seconds—or disable automatic resume. | **Choose what counts.** Review active microphone sources and ignore individual apps. |
 | **Manual pauses stay paused.** Music resumes only if Mic Pause initiated the pause. | **One click away.** Open the dashboard from the menu bar; right-click for quick actions. |
 | **Override any session.** Manually resume Music and Mic Pause leaves playback alone for that microphone session. | **Ready at login.** Launch at Login is enabled on first launch and can be switched off. |
+| **Meeting Assist.** Lower call audio while dictating into ChatGPT, macOS Dictation, or MacWhisper. | **State-aware muting.** With permission, mute Teams, Zoom, FaceTime, or Phone without sending a blind keyboard toggle. |
 
 ## A small app, with the controls you need
 
@@ -47,8 +48,9 @@ Start a call, record a voice note, or use dictation. **Mic Pause automatically p
 2. Drag **Mic Pause** into **Applications**, then eject the disk image.
 3. Open Mic Pause and click its microphone icon in the menu bar.
 4. Allow it to control **Music** when macOS asks. Play some music, then start using your microphone.
+5. Optional: enable **Meeting Assist** and grant Accessibility permission if you want call audio lowered and the meeting microphone muted during dictation.
 
-The default resume delay is **two seconds**. Mic Pause controls the **Music app on your Mac**; Spotify, browser players, and system volume are outside its scope. Local music playback does not require an Apple Music subscription.
+The default recovery delay is **two seconds**. It applies to both automatic Music resume and Meeting Assist's meeting unmute and sound restoration. Meeting Assist mutes promptly when dictation starts; it does not wait before protecting your prompt. Optional feedback tones for Music and meeting-microphone changes are off until you enable them in Settings. Mic Pause controls the **Music app on your Mac**. Meeting Assist can temporarily lower the current system output, but it does not control Spotify or browser playback directly. Local music playback does not require an Apple Music subscription.
 
 > **Preview signing:** the current preview is development-signed and **not notarized by Apple**. macOS may block it. Read the release’s installation notes before installing. If you trust the download, macOS provides **System Settings → Privacy & Security → Open Anyway** after an attempted launch.
 
@@ -69,9 +71,9 @@ Use the filename supplied with your release. A matching checksum confirms the fi
 
 **No audio recordings. No accounts. No analytics.**
 
-Mic Pause reads Core Audio activity metadata to learn whether a microphone is active and which capture processes macOS reports. It does not open an audio stream or analyze your conversations. The app makes no network requests, and preferences stay on your Mac.
+Mic Pause reads Core Audio activity metadata to learn whether a microphone is active and which capture processes macOS reports. It does not open an audio stream or analyze your conversations. Meeting Assist can read the role, label, enabled state, and available action of controls in supported meeting apps, and press a verified Mute or Unmute control. Phone-call detection reads whether Phone or FaceTime exposes an enabled Hang Up control; it never presses that control. The app makes no network requests, and preferences stay on your Mac.
 
-It requests **Automation permission for Music**. It does not require Accessibility or microphone-recording permission.
+It requests **Automation permission for Music**. Accessibility is optional and is used only when Meeting Assist or Phone-call detection is enabled. It does not request microphone-recording or screen-recording permission.
 
 [Read the privacy policy](docs/privacy.html) · [Inspect the privacy manifest](MicPause/PrivacyInfo.xcprivacy)
 
@@ -93,7 +95,27 @@ Some apps and drivers keep an input open between calls. Review **Settings → Mi
 
 Known background listeners are ignored by default. Dictation and Siri still trigger a pause unless you explicitly ignore them.
 
-Detection depends on macOS and audio-driver activity reports. The app checks system-wide capture processes every second, including those using a non-default microphone. When attribution is unavailable, it falls back to the default input’s activity flag. Very brief manual playback changes can occur between polling intervals.
+Detection depends on macOS and audio-driver activity reports. The app listens for system-wide capture-process changes, including apps using a non-default microphone, and keeps a one-second fallback refresh. When attribution is unavailable, it falls back to the default input’s activity flag.
+
+</details>
+
+<details>
+<summary><strong>Meeting Assist did not lower or mute the call</strong></summary>
+
+- Enable Meeting Assist in Settings and allow Mic Pause in **System Settings → Privacy & Security → Accessibility**.
+- Native-app microphone control currently supports Microsoft Teams, Zoom, FaceTime, and Phone. Mic Pause intentionally does not send blind keyboard shortcuts. If it cannot verify a Mute/Unmute control, it leaves the app alone and reports the problem in Settings.
+- Mic Pause waits for the selected **Music & Meeting Recovery Delay** after dictation ends before unmuting a microphone it muted and restoring reduced sound. If you want confirmation tones, turn on **Play feedback sounds** in Settings; the tones are off by default and may be audible to other meeting participants after unmuting.
+- Sound reduction uses the default output device’s public software-volume control. Some fixed-volume hardware and virtual devices—including some Wave Link routes—do not expose one; Mic Pause reports that limitation instead of changing an unrelated control.
+- Browser meetings are not auto-muted because a browser bundle identifier does not safely identify which tab owns the meeting.
+
+</details>
+
+<details>
+<summary><strong>An iPhone call in the Mac Phone app is not detected</strong></summary>
+
+Continuity calls are relayed through the iPhone, and their audio can be owned by private Apple telephony services rather than the visible Phone app. Native macOS apps also cannot use CallKit’s system call observer. This explains why Mic Pause—and sometimes “record all system audio” tools—may see neither a Phone microphone process nor call audio.
+
+On supported macOS versions, Mic Pause offers a best-effort Accessibility fallback: it treats Phone or FaceTime as active only while macOS exposes an enabled **Hang Up** control. Grant Accessibility permission and keep **Detect active Phone calls** enabled. If macOS does not expose that control for a particular call route or version, the call remains a known platform limitation.
 
 </details>
 
@@ -109,6 +131,8 @@ Still stuck? [Open an issue](https://github.com/dp466/MusicMicPause/issues) with
 ## Build from source
 
 Use **Xcode 26+ with the macOS 26 SDK or newer** and [XcodeGen](https://github.com/yonaskolb/XcodeGen). This checkout is verified with Xcode 27; the app runs on macOS 14+ and adopts newer visual effects where supported.
+
+Meeting Assist uses user-approved Accessibility control of other apps. Apple documents assistive Accessibility access as incompatible with App Sandbox, so the current target is a Hardened Runtime, direct-distribution build and is not ready for the Mac App Store without separating or removing that feature.
 
 ```sh
 brew install xcodegen

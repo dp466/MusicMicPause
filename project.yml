@@ -28,7 +28,11 @@ targets:
         PRODUCT_NAME: MicPause
         INFOPLIST_FILE: MicPause/Info.plist
         CODE_SIGN_ENTITLEMENTS: MicPause/MicPause.entitlements
-        ENABLE_APP_SANDBOX: YES
+        # Meeting microphone control uses the user-approved Accessibility API.
+        # Apple documents assistive Accessibility access as incompatible with
+        # App Sandbox, so this direct-distribution build keeps Hardened Runtime
+        # but is intentionally not Mac App Store sandboxed.
+        ENABLE_APP_SANDBOX: NO
         COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:

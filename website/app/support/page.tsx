@@ -50,6 +50,32 @@ export default function SupportPage() {
           automatically is enabled in Settings.
         </p>
 
+        <h2>Meeting Assist did not mute or lower the call</h2>
+        <p>
+          Enable Meeting Assist, then allow Mic Pause in System Settings →
+          Privacy &amp; Security → Accessibility. Automatic microphone control
+          supports Teams, Zoom, FaceTime, and Phone. Mic Pause will not send a
+          blind keyboard shortcut if it cannot verify the current Mute or Unmute
+          control. Some fixed-volume hardware and virtual output devices do not
+          expose software volume control; Settings reports that limitation.
+        </p>
+        <p>
+          Mic Pause mutes promptly when dictation begins, then waits for the
+          selected Music &amp; Meeting Recovery Delay before unmuting and
+          restoring reduced sound. Optional feedback tones are off by default;
+          enable them in Settings if you want audible confirmation. An unmute
+          tone may be heard by meeting participants.
+        </p>
+
+        <h2>An iPhone call in Phone is not detected</h2>
+        <p>
+          Continuity call audio may bypass the public capture metadata available
+          to Mic Pause. Keep Detect active Phone calls enabled and grant
+          Accessibility permission. Mic Pause then looks for an enabled Hang Up
+          control in Phone or FaceTime. If macOS does not expose that control for
+          the current call route, it remains a known platform limitation.
+        </p>
+
         <h2>Contact</h2>
         <p>
           Include your macOS version, Mic Pause version, microphone model, and a

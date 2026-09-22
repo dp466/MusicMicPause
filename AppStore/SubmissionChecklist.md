@@ -1,6 +1,6 @@
 # App Store Submission Checklist
 
-> Historical App Store preparation notes from July 2026. Recheck Store requirements before submission. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
+> Historical App Store preparation notes from July 2026. The current main target adds Accessibility-based Meeting Assist and is intentionally unsandboxed, so it is not App Store-ready. Recheck Store requirements and split or remove that capability before using this checklist. For current GitHub packaging and signing, see [release instructions](../docs/RELEASING.md).
 
 ## Owner decisions and account setup
 

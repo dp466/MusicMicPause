@@ -1,5 +1,7 @@
 # App Store Connect Copy — Mic Pause 1.0
 
+> Historical copy. The current main target includes Accessibility-based Meeting Assist and is intentionally unsandboxed; it must be split or revised before this material is used for App Store submission.
+
 Copy these values into the English (Canada) or English (U.S.) localization.
 
 ## App information

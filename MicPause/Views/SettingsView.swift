@@ -99,6 +99,8 @@ struct SettingsView: View {
         VStack(spacing: 18) {
             generalCard
             playbackCard
+            meetingAssistCard
+            phoneCallsCard
             microphoneCard
             captureSourcesCard
             automationCard
@@ -129,6 +131,17 @@ struct SettingsView: View {
                 isOn: Binding(
                     get: { model.loginItemManager.isEnabled },
                     set: { model.loginItemManager.setEnabled($0) }
+                )
+            )
+
+            Divider()
+
+            settingToggle(
+                title: "Play feedback sounds",
+                detail: "Quiet tones confirm Music and meeting-microphone changes. An unmute tone may be heard by meeting participants.",
+                isOn: Binding(
+                    get: { model.settings.feedbackSoundsEnabled },
+                    set: { model.settings.feedbackSoundsEnabled = $0 }
                 )
             )
 
@@ -170,7 +183,7 @@ struct SettingsView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("RESUME DELAY")
+                Text("MUSIC & MEETING RECOVERY DELAY")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .tracking(0.6)
@@ -188,7 +201,14 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .disabled(!model.settings.automaticResume)
+                .disabled(
+                    !model.settings.automaticResume && !model.settings.meetingAssistEnabled
+                )
+
+                Text("Meeting Assist waits this long before unmuting and restoring sound. It still applies when automatic Music resume is off.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -226,6 +246,131 @@ struct SettingsView: View {
             .font(.callout)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var meetingAssistCard: some View {
+        settingsCard(
+            icon: "person.wave.2.fill",
+            title: "Meeting Assist",
+            subtitle: "Make room for ChatGPT, Dictation, and MacWhisper"
+        ) {
+            settingToggle(
+                title: "Enable Meeting Assist",
+                detail: "While a supported meeting and dictation are using the microphone together, lower the sound and protect your spoken prompt.",
+                isOn: Binding(
+                    get: { model.settings.meetingAssistEnabled },
+                    set: { model.settings.meetingAssistEnabled = $0 }
+                )
+            )
+
+            Divider()
+
+            settingToggle(
+                title: "Lower meeting sound",
+                detail: "Temporarily lowers the current system output, then restores only the volume Mic Pause changed.",
+                isOn: Binding(
+                    get: { model.settings.lowerMeetingAudio },
+                    set: { model.settings.lowerMeetingAudio = $0 }
+                )
+            )
+            .disabled(!model.settings.meetingAssistEnabled)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("REDUCED VOLUME")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .tracking(0.6)
+                    Spacer()
+                    Text("\(Int(model.settings.reducedMeetingVolume * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+
+                Slider(
+                    value: Binding(
+                        get: { model.settings.reducedMeetingVolume },
+                        set: { model.settings.reducedMeetingVolume = $0 }
+                    ),
+                    in: 0.05...0.60,
+                    step: 0.05
+                )
+                .accessibilityLabel("Reduced meeting volume")
+            }
+            .disabled(
+                !model.settings.meetingAssistEnabled || !model.settings.lowerMeetingAudio
+            )
+
+            Divider()
+
+            settingToggle(
+                title: "Mute the meeting microphone",
+                detail: "Mutes promptly when dictation begins. After dictation ends, it waits for the recovery delay before unmuting a meeting that Mic Pause muted.",
+                isOn: Binding(
+                    get: { model.settings.muteMeetingMicrophone },
+                    set: { model.settings.muteMeetingMicrophone = $0 }
+                )
+            )
+            .disabled(!model.settings.meetingAssistEnabled)
+
+            Divider()
+
+            statusRow(
+                title: "Meeting Assist status",
+                value: model.meetingAssistCoordinator.state.label,
+                icon: meetingAssistStatusIcon,
+                tint: meetingAssistStatusTint
+            )
+
+            statusRow(
+                title: "Accessibility",
+                value: model.accessibilityAutomation.permissionStatus.label,
+                icon: model.accessibilityAutomation.permissionStatus == .granted
+                    ? "checkmark.shield.fill"
+                    : "lock.trianglebadge.exclamationmark.fill",
+                tint: model.accessibilityAutomation.permissionStatus == .granted
+                    ? .mint
+                    : .orange
+            )
+
+            accessibilityActions
+
+            Text("Supported meeting controls: Microsoft Teams, Zoom, FaceTime, and Phone. Browser meetings cannot be identified safely when the browser is also being used for other audio.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var phoneCallsCard: some View {
+        settingsCard(
+            icon: "iphone.and.arrow.forward",
+            title: "Phone & Continuity Calls",
+            subtitle: "Best-effort detection for relayed iPhone calls"
+        ) {
+            settingToggle(
+                title: "Detect active Phone calls",
+                detail: "Uses the enabled Hang Up control exposed by Phone or FaceTime. Merely opening either app never counts as a call.",
+                isOn: Binding(
+                    get: { model.settings.detectPhoneCalls },
+                    set: { model.settings.detectPhoneCalls = $0 }
+                )
+            )
+
+            Divider()
+
+            statusRow(
+                title: "Call detection",
+                value: model.phoneCallMonitor.state.label,
+                icon: phoneCallStatusIcon,
+                tint: phoneCallStatusTint
+            )
+
+            Text("Apple does not expose its system call observer to native macOS apps, and relayed call audio may bypass public Core Audio and system-capture paths. This Accessibility fallback depends on macOS continuing to expose an enabled call control.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -381,7 +526,7 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("macOS asks for Automation access the first time Mic Pause controls Apple Music. Accessibility permission is never used.")
+            Text("macOS asks for Automation access the first time Mic Pause controls Apple Music. Accessibility is separate and is used only for enabled Meeting Assist and Phone-call detection.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -522,6 +667,33 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private var accessibilityActions: some View {
+        let content = HStack(spacing: 10) {
+            Button(
+                model.accessibilityAutomation.permissionStatus == .granted
+                    ? "Check Permission"
+                    : "Request Permission"
+            ) {
+                if model.accessibilityAutomation.permissionStatus == .granted {
+                    model.refreshAccessibilityPermission()
+                } else {
+                    model.requestAccessibilityPermission()
+                }
+            }
+
+            Button("Open Accessibility Settings") {
+                openAccessibilityPrivacySettings()
+            }
+        }
+
+        if #available(macOS 26.0, *) {
+            content.buttonStyle(.glass)
+        } else {
+            content.buttonStyle(.bordered)
+        }
+    }
+
     private var settingsTint: Color {
         model.monitoringEnabled ? .mint : .secondary
     }
@@ -571,6 +743,58 @@ struct SettingsView: View {
             : "xmark.circle.fill"
     }
 
+    private var meetingAssistStatusIcon: String {
+        switch model.meetingAssistCoordinator.state {
+        case .disabled:
+            "pause.circle.fill"
+        case .ready:
+            "checkmark.circle.fill"
+        case .active:
+            "waveform.circle.fill"
+        case .attention:
+            "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var meetingAssistStatusTint: Color {
+        switch model.meetingAssistCoordinator.state {
+        case .disabled:
+            .secondary
+        case .ready:
+            .mint
+        case .active:
+            .indigo
+        case .attention:
+            .orange
+        }
+    }
+
+    private var phoneCallStatusIcon: String {
+        switch model.phoneCallMonitor.state {
+        case .disabled:
+            "pause.circle.fill"
+        case .permissionRequired, .unavailable:
+            "exclamationmark.triangle.fill"
+        case .idle:
+            "phone.circle.fill"
+        case .active:
+            "phone.connection.fill"
+        }
+    }
+
+    private var phoneCallStatusTint: Color {
+        switch model.phoneCallMonitor.state {
+        case .disabled:
+            .secondary
+        case .permissionRequired, .unavailable:
+            .orange
+        case .idle:
+            .mint
+        case .active:
+            .green
+        }
+    }
+
     private var permissionButtonTitle: String {
         switch model.automationPermission {
         case .notDetermined:
@@ -611,6 +835,13 @@ struct SettingsView: View {
     private func openAutomationPrivacySettings() {
         guard let url = URL(
             string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
+        ) else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func openAccessibilityPrivacySettings() {
+        guard let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
         ) else { return }
         NSWorkspace.shared.open(url)
     }

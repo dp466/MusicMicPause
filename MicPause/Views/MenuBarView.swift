@@ -195,7 +195,7 @@ struct MenuBarView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("RESUME DELAY")
+                Text("RECOVERY DELAY")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .tracking(0.6)
@@ -213,7 +213,9 @@ struct MenuBarView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .disabled(!model.settings.automaticResume)
+                .disabled(
+                    !model.settings.automaticResume && !model.settings.meetingAssistEnabled
+                )
             }
         }
         .padding(16)
@@ -237,6 +239,19 @@ struct MenuBarView: View {
                 value: model.automationPermission.label,
                 tint: model.automationPermission.tint
             )
+
+            if model.settings.meetingAssistEnabled {
+                Divider()
+
+                healthRow(
+                    icon: model.meetingAssistCoordinator.isActive
+                        ? "person.wave.2.fill"
+                        : "person.wave.2",
+                    title: "Meeting Assist",
+                    value: model.meetingAssistCoordinator.state.label,
+                    tint: model.meetingAssistCoordinator.isActive ? .indigo : .mint
+                )
+            }
         }
         .padding(16)
         .micPauseGlass()

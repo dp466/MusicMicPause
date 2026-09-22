@@ -6,6 +6,13 @@ import Observation
 final class PlaybackCoordinator {
     typealias ResumePolicy = @MainActor () -> (automatically: Bool, delay: Duration)
 
+    enum PlaybackChange: Equatable, Sendable {
+        case paused
+        case resumed
+    }
+
+    @ObservationIgnored var onPlaybackChange: (@MainActor (PlaybackChange) -> Void)?
+
     /// How often the coordinator re-reads Apple Music while it owns a pause.
     ///
     /// This only keeps the displayed state honest when playback is changed from
@@ -114,6 +121,7 @@ final class PlaybackCoordinator {
                 state = .pausedByUtility
                 startPlayerObservation()
                 Log.playback.info("Paused Apple Music for a microphone activation cycle")
+                onPlaybackChange?(.paused)
             } catch {
                 guard isCurrentActiveTransition(generation) else { return }
                 state = .unavailable(error.localizedDescription)
@@ -160,6 +168,7 @@ final class PlaybackCoordinator {
 
                 pausedByUs = false
                 Log.playback.info("Resumed Apple Music after microphone became inactive")
+                onPlaybackChange?(.resumed)
             } catch is CancellationError {
                 return
             } catch {
@@ -241,6 +250,7 @@ final class PlaybackCoordinator {
 
             pausedByUs = false
             Log.playback.info("Restored Apple Music playback while stopping monitoring")
+            onPlaybackChange?(.resumed)
         } catch {
             guard isCurrentTransition(
                 generation,

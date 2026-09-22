@@ -1,5 +1,7 @@
 # App Review Notes
 
+> Historical notes. The current main target includes Accessibility-based Meeting Assist and is intentionally unsandboxed; it is not ready for App Store review without a separate sandboxed configuration.
+
 Mic Pause is a menu-bar utility. It has no Dock icon and opens from the
 microphone icon in the macOS menu bar.
 

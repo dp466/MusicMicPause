@@ -8,6 +8,8 @@
 - `AppStore/`: App Store preparation materials and screenshot harness. Store submission is a separate workflow from GitHub releases.
 - `website/`: companion website source. Publishing it is separate from pushing the repository.
 
+The current application target is intentionally not App Sandbox-enabled. Meeting Assist uses user-approved Accessibility access to supported meeting apps, which Apple documents as incompatible with App Sandbox. Hardened Runtime remains enabled. The materials under `AppStore/` predate Meeting Assist and are historical unless this capability is separated into a non-Store build.
+
 Build caches and temporary screenshot projects belong in machine-local temporary storage, outside the iCloud source tree. `dist/` contains local release artifacts and is excluded from Git. Numbered duplicate Xcode project folders are retained locally but excluded; use `MicPause.xcodeproj`.
 
 ## Build and test
