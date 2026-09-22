@@ -7,6 +7,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/dp466/MusicMicPause/releases"><strong>Download the preview →</strong></a> &nbsp;·&nbsp;
+  <a href="#meeting-assist">Meeting Assist</a> &nbsp;·&nbsp;
   <a href="#getting-started">Get started</a> &nbsp;·&nbsp;
   <a href="#privacy">Privacy</a> &nbsp;·&nbsp;
   <a href="https://github.com/dp466/MusicMicPause/issues">Report an issue</a>
@@ -14,14 +15,32 @@
 
 ## Music that makes room for you
 
-Start a call, record a voice note, or use dictation. **Mic Pause automatically pauses Apple Music while your microphone is active**, then resumes it when you’re done. It lives in your menu bar, ready whenever you need it.
+Start a call, record a voice note, or use dictation. **Mic Pause automatically pauses Apple Music while your microphone is active**, then resumes it when you’re done. Its optional Meeting Assist can make room for dictation while you stay in a call. It lives in your menu bar, ready whenever you need it.
 
 | Your music, your control | Built for everyday use |
 | --- | --- |
 | **Resume on your terms.** Choose immediately, 1, 2, or 5 seconds—or disable automatic resume. | **Choose what counts.** Review active microphone sources and ignore individual apps. |
 | **Manual pauses stay paused.** Music resumes only if Mic Pause initiated the pause. | **One click away.** Open the dashboard from the menu bar; right-click for quick actions. |
 | **Override any session.** Manually resume Music and Mic Pause leaves playback alone for that microphone session. | **Ready at login.** Launch at Login is enabled on first launch and can be switched off. |
-| **Meeting Assist.** Lower call audio while dictating into ChatGPT, macOS Dictation, or MacWhisper. | **State-aware muting.** With permission, mute Teams, Zoom, FaceTime, or Phone without sending a blind keyboard toggle. |
+
+## Meeting Assist
+
+<p align="center">
+  <img src="docs/images/meeting-assist-flow.svg" width="100%" alt="Meeting Assist flow: while you are in a supported call, starting dictation can mute the verified meeting microphone control and lower system output; after your selected delay, Mic Pause restores only changes it made.">
+</p>
+
+Talk to ChatGPT, use macOS Dictation, or transcribe with MacWhisper while a supported meeting is active. With Meeting Assist enabled, Mic Pause recognizes the overlap and can make two careful changes:
+
+- **Mute the meeting microphone promptly.** It looks for the app’s current Mute control, never sends a blind toggle, and later unmutes only a microphone it muted itself.
+- **Lower the call sound.** Choose a reduced level for the current system output. Mic Pause restores its own volume change after dictation, but leaves a manual volume adjustment alone.
+
+When dictation ends, meeting unmute and sound restoration follow the same **recovery delay** as Music resume: immediately, or after 1, 2, or 5 seconds (default: 2 seconds). Music still follows overall microphone activity: if your meeting continues to use the mic, it stays paused. Optional confirmation tones are off by default.
+
+Meeting Assist supports native **Microsoft Teams, Zoom, FaceTime, and Phone** controls when macOS exposes them. It requires your permission under **System Settings → Privacy & Security → Accessibility**. Browser meetings are not auto-muted, and Phone/Continuity-call detection is best-effort. Call-sound reduction is system-wide and requires an output device with software volume control.
+
+> **For sensitive dictation:** check the meeting’s mute indicator before you speak. macOS microphone detection and app controls can take a moment; if Mic Pause cannot verify a Mute control, it leaves the meeting alone and shows a warning in Settings.
+
+> **Build availability:** Meeting Assist is in the current `main` source. Check a downloadable preview’s release notes before assuming that build includes it.
 
 ## A small app, with the controls you need
 
@@ -48,9 +67,9 @@ Start a call, record a voice note, or use dictation. **Mic Pause automatically p
 2. Drag **Mic Pause** into **Applications**, then eject the disk image.
 3. Open Mic Pause and click its microphone icon in the menu bar.
 4. Allow it to control **Music** when macOS asks. Play some music, then start using your microphone.
-5. Optional: enable **Meeting Assist** and grant Accessibility permission if you want call audio lowered and the meeting microphone muted during dictation.
+5. Optional: open **Settings → Meeting Assist**, enable it, and grant Accessibility permission if you want call audio lowered and the meeting microphone muted during dictation. Adjust the reduced volume and recovery delay to suit you.
 
-The default recovery delay is **two seconds**. It applies to both automatic Music resume and Meeting Assist's meeting unmute and sound restoration. Meeting Assist mutes promptly when dictation starts; it does not wait before protecting your prompt. Optional feedback tones for Music and meeting-microphone changes are off until you enable them in Settings. Mic Pause controls the **Music app on your Mac**. Meeting Assist can temporarily lower the current system output, but it does not control Spotify or browser playback directly. Local music playback does not require an Apple Music subscription.
+Mic Pause controls the **Music app on your Mac**. Meeting Assist can temporarily lower the current system output, but it does not control Spotify or browser playback directly. Local music playback does not require an Apple Music subscription.
 
 > **Preview signing:** the current preview is development-signed and **not notarized by Apple**. macOS may block it. Read the release’s installation notes before installing. If you trust the download, macOS provides **System Settings → Privacy & Security → Open Anyway** after an attempted launch.
 

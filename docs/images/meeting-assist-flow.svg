@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc">
+  <title id="title">Meeting Assist — a calmer way to dictate during a call</title>
+  <desc id="desc">A three-step flow: stay in a supported call, begin dictation to mute its verified microphone control and lower system output, then return after the selected recovery delay. Only changes made by Mic Pause are restored.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#0b1320"/>
+      <stop offset="1" stop-color="#102d32"/>
+    </linearGradient>
+    <linearGradient id="active" x2="1" y2="1">
+      <stop stop-color="#153a3d"/>
+      <stop offset="1" stop-color="#1c4747"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#46e7d9" stop-opacity=".17"/>
+      <stop offset="1" stop-color="#46e7d9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="560" rx="28" fill="url(#background)"/>
+  <circle cx="1005" cy="155" r="310" fill="url(#glow)"/>
+  <g fill="none" stroke="#73e9de" stroke-opacity=".11">
+    <circle cx="1070" cy="98" r="110"/>
+    <circle cx="1070" cy="98" r="149"/>
+    <circle cx="1070" cy="98" r="190"/>
+  </g>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="64" y="68" fill="#78e6da" font-size="15" font-weight="700" letter-spacing="3">MEETING ASSIST</text>
+    <text x="60" y="129" fill="#f3fbfc" font-size="49" font-weight="700" letter-spacing="-1.5">Make space for your voice.</text>
+    <text x="64" y="171" fill="#b7d1d5" font-size="21">Dictate beside a live call. Return to it on your own timing.</text>
+
+    <rect x="64" y="211" width="364" height="236" rx="22" fill="#132630" stroke="#34515a" stroke-width="2"/>
+    <rect x="88" y="237" width="52" height="32" rx="16" fill="#253e48"/>
+    <text x="103" y="259" fill="#a9d9dc" font-size="16" font-weight="700">01</text>
+    <text x="88" y="316" fill="#f4fbfc" font-size="29" font-weight="700">Stay in the call</text>
+    <text x="88" y="359" fill="#b7d1d5" font-size="18">Teams · Zoom · FaceTime · Phone</text>
+    <text x="88" y="392" fill="#8faeb6" font-size="18">Your meeting continues normally.</text>
+
+    <path d="M437 329h12m-6-6 6 6-6 6" fill="none" stroke="#77dfd7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="458" y="211" width="364" height="236" rx="22" fill="url(#active)" stroke="#54d9ce" stroke-width="2"/>
+    <rect x="482" y="237" width="52" height="32" rx="16" fill="#2f807d"/>
+    <text x="497" y="259" fill="#f1fffd" font-size="16" font-weight="700">02</text>
+    <text x="482" y="316" fill="#f4fbfc" font-size="29" font-weight="700">Begin dictation</text>
+    <circle cx="493" cy="352" r="5" fill="#64f2e2"/>
+    <text x="511" y="359" fill="#e3faf7" font-size="18">Mic muted when verified</text>
+    <circle cx="493" cy="385" r="5" fill="#64f2e2"/>
+    <text x="511" y="392" fill="#e3faf7" font-size="18">Output lowered when supported</text>
+
+    <path d="M831 329h12m-6-6 6 6-6 6" fill="none" stroke="#77dfd7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="852" y="211" width="364" height="236" rx="22" fill="#132630" stroke="#34515a" stroke-width="2"/>
+    <rect x="876" y="237" width="52" height="32" rx="16" fill="#253e48"/>
+    <text x="891" y="259" fill="#a9d9dc" font-size="16" font-weight="700">03</text>
+    <text x="876" y="316" fill="#f4fbfc" font-size="29" font-weight="700">Come back smoothly</text>
+    <text x="876" y="359" fill="#b7d1d5" font-size="18">Wait your recovery delay</text>
+    <text x="876" y="392" fill="#8faeb6" font-size="18">Restore only our changes</text>
+
+    <rect x="64" y="477" width="1152" height="51" rx="15" fill="#112a34" stroke="#31515a"/>
+    <text x="88" y="509" fill="#78e6da" font-size="14" font-weight="700" letter-spacing="1.6">YOUR CHOICE</text>
+    <text x="242" y="509" fill="#c5dadd" font-size="17">Opt in when you want · optional confirmation tones · no audio recording</text>
+  </g>
+</svg>
