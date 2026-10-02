@@ -13,6 +13,7 @@ enum MeetingMicrophoneAction: Equatable, Sendable {
 struct AccessibilityControlDescriptor: Equatable, Sendable {
     let role: String
     let strings: [String]
+    let toggleState: Bool?
     let isEnabled: Bool
     let canPress: Bool
 }
@@ -35,18 +36,19 @@ enum AccessibilityControlClassifier {
         let combined = values.joined(separator: " ")
         guard !excludedMicrophonePhrases.contains(where: combined.contains) else { return nil }
 
+        var matches: [(action: MeetingMicrophoneAction, score: Int)] = []
         for (index, value) in values.enumerated() {
             let scoreAdjustment = min(index, 8)
 
             if value.hasPrefix("microphone unmuted")
                 || value.hasPrefix("microphone is on")
                 || value.hasPrefix("mic on") {
-                return (.mute, 116 - scoreAdjustment)
+                matches.append((.mute, 116 - scoreAdjustment))
             }
             if value.hasPrefix("microphone muted")
                 || value.hasPrefix("microphone is off")
                 || value.hasPrefix("mic off") {
-                return (.unmute, 116 - scoreAdjustment)
+                matches.append((.unmute, 116 - scoreAdjustment))
             }
 
             if value == "unmute"
@@ -59,7 +61,7 @@ enum AccessibilityControlClassifier {
                     "turn microphone on", "turn mic on", "enable microphone",
                     "activer le microphone", "activer le micro",
                 ]) {
-                return (.unmute, 110 - scoreAdjustment)
+                matches.append((.unmute, 110 - scoreAdjustment))
             }
 
             if value == "mute"
@@ -73,19 +75,36 @@ enum AccessibilityControlClassifier {
                     "couper le microphone", "couper le micro",
                     "desactiver le microphone", "desactiver le micro",
                 ]) {
-                return (.mute, 110 - scoreAdjustment)
+                matches.append((.mute, 110 - scoreAdjustment))
             }
         }
 
         // Some Electron apps expose only an internal identifier with no title.
-        let compact = combined.replacingOccurrences(of: " ", with: "")
-        if compact.contains("unmutemicrophone") || compact.contains("unmuteaudio") {
-            return (.unmute, 75)
+        if matches.isEmpty {
+            let compact = combined.replacingOccurrences(of: " ", with: "")
+            if compact.contains("unmutemicrophone") || compact.contains("unmuteaudio") {
+                matches.append((.unmute, 75))
+            } else if compact.contains("mutemicrophone") || compact.contains("muteaudio") {
+                matches.append((.mute, 74))
+            }
         }
-        if compact.contains("mutemicrophone") || compact.contains("muteaudio") {
-            return (.mute, 74)
+
+        guard !matches.isEmpty else { return nil }
+
+        if descriptor.role == kAXCheckBoxRole as String
+            || descriptor.role == kAXRadioButtonRole as String {
+            // Toggle titles commonly describe the setting rather than the action.
+            // Trust only the role-appropriate checked/selected state, and fail
+            // closed when the application does not expose one.
+            guard let toggleState = descriptor.toggleState else { return nil }
+            return (toggleState ? .unmute : .mute, 120)
         }
-        return nil
+
+        // Accessibility text belongs to the target application. Contradictory
+        // attributes are not safe evidence of the current microphone state.
+        let actions = matches.map(\.action)
+        guard !actions.contains(.mute) || !actions.contains(.unmute) else { return nil }
+        return matches.max(by: { $0.score < $1.score })
     }
 
     static func indicatesActiveCall(
@@ -278,6 +297,7 @@ final class AccessibilityAutomation {
             return AccessibilityControlDescriptor(
                 role: role,
                 strings: [],
+                toggleState: nil,
                 isEnabled: true,
                 canPress: false
             )
@@ -296,6 +316,12 @@ final class AccessibilityAutomation {
             attribute: kAXEnabledAttribute as CFString
         ) ?? true
 
+        let isToggle = role == kAXCheckBoxRole as String || role == kAXRadioButtonRole as String
+        let toggleState = isToggle
+            ? booleanValue(of: element, attribute: kAXSelectedAttribute as CFString)
+                ?? booleanValue(of: element, attribute: kAXValueAttribute as CFString)
+            : nil
+
         var actionNames: CFArray?
         let actionResult = AXUIElementCopyActionNames(element, &actionNames)
         let actions = actionResult == .success ? actionNames as? [String] : nil
@@ -303,6 +329,7 @@ final class AccessibilityAutomation {
         return AccessibilityControlDescriptor(
             role: role,
             strings: strings,
+            toggleState: toggleState,
             isEnabled: isEnabled,
             canPress: actions?.contains(kAXPressAction as String) == true
         )

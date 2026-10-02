@@ -71,6 +71,23 @@ final class MeetingAssistTests: XCTestCase {
         XCTAssertNil(microphoneMatch("Mute", isEnabled: false))
     }
 
+    func testMicrophoneControlClassifierRejectsContradictoryAttributes() {
+        XCTAssertNil(microphoneMatch(strings: ["Mute", "Microphone muted"]))
+        XCTAssertNil(microphoneMatch(strings: ["Microphone muted", "Mute"]))
+    }
+
+    func testMicrophoneToggleClassifierRequiresAndUsesControlState() {
+        XCTAssertEqual(
+            microphoneMatch("Mute microphone", role: "AXCheckBox", toggleState: true)?.action,
+            .unmute
+        )
+        XCTAssertEqual(
+            microphoneMatch("Mute microphone", role: "AXCheckBox", toggleState: false)?.action,
+            .mute
+        )
+        XCTAssertNil(microphoneMatch("Mute microphone", role: "AXCheckBox"))
+    }
+
     func testActiveCallClassifierRequiresAnEnabledPressableCallControl() {
         XCTAssertNotNil(activeCallMatch("Hang Up"))
         XCTAssertNotNil(activeCallMatch("Raccrocher"))
@@ -316,12 +333,29 @@ final class MeetingAssistTests: XCTestCase {
 
     private func microphoneMatch(
         _ value: String,
+        role: String = "AXButton",
+        toggleState: Bool? = nil,
+        isEnabled: Bool = true
+    ) -> (action: MeetingMicrophoneAction, score: Int)? {
+        microphoneMatch(
+            strings: [value],
+            role: role,
+            toggleState: toggleState,
+            isEnabled: isEnabled
+        )
+    }
+
+    private func microphoneMatch(
+        strings: [String],
+        role: String = "AXButton",
+        toggleState: Bool? = nil,
         isEnabled: Bool = true
     ) -> (action: MeetingMicrophoneAction, score: Int)? {
         AccessibilityControlClassifier.microphoneAction(
             for: AccessibilityControlDescriptor(
-                role: "AXButton",
-                strings: [value],
+                role: role,
+                strings: strings,
+                toggleState: toggleState,
                 isEnabled: isEnabled,
                 canPress: true
             )
@@ -333,6 +367,7 @@ final class MeetingAssistTests: XCTestCase {
             AccessibilityControlDescriptor(
                 role: "AXButton",
                 strings: [value],
+                toggleState: nil,
                 isEnabled: isEnabled,
                 canPress: true
             )
